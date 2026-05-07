@@ -114,7 +114,7 @@ class Character():
        
 
     def move(self,dx,dy,world):
-        if self.char_type!='3' or(self.char_type=='3' and not self.alive):
+        if self.char_type not in ['3', '5'] or not self.alive :
          #这里的 vel_y 代表 Vertical Velocity（纵向速度）+= 1：意味着每一帧循环，物体的向下速度都会增加 1 个单位。
          self.vel_y+=1
          #将当前计算出的“瞬时速度”赋值给一个临时变量 dy
@@ -290,7 +290,7 @@ class Character():
         #state priority=stunned,attack,walk,idle
             if self.stunned:
                 self.enemy_state='Stunned'
-            elif self.char_type=='3':
+            elif self.char_type in ['3', '5']:
              self.vel_y=0
              if dist<500:
                  if dist>50:
@@ -310,9 +310,11 @@ class Character():
                   ai_dx=0
                   ai_dy=0
                   # 检查冷却：如果是第一次（last为负值）或冷却时间已到
-                  if self.char_type=='3':
-                    if not self.has_charged:
-                        charge = Charge(self, animation.charge_animation, self.rect.centerx, self.rect.centery, player.rect.centerx, player.rect.centery)
+                  if not self.has_charged:
+                        if self.char_type=='3':
+                         charge = Charge(self, animation.charge_animation, self.rect.centerx, self.rect.centery, player.rect.centerx, player.rect.centery)
+                        elif self.char_type=='5':
+                         charge = Charge(self, animation.charge_pink_animation, self.rect.centerx, self.rect.centery, player.rect.centerx, player.rect.centery)
                         charge_place_holder = charge
                         self.has_charged=True
                         self.last_charge_attack = now

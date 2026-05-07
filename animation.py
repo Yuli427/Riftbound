@@ -30,28 +30,36 @@ Demon1_animations['Stunned']=('assets/Enemy/Demon_1/Hurt.png',6)
 Demon1_animations['Dead']=('assets/Enemy/Demon_1/Dead.png',11)
 
 
-Demon3_animations={}
-Demon3_animations['Idle']=('assets/Enemy/Demon_3/Idle.png',6)
-Demon3_animations['Walk']=('assets/Enemy/Demon_3/Walk.png',12)
-Demon3_animations['Attack']=('assets/Enemy/Demon_3/Attack.png',9)
-Demon3_animations['Stunned']=('assets/Enemy/Demon_3/Hurt.png',3)
-Demon3_animations['Dead']=('assets/Enemy/Demon_3/Dead.png',8)
+Demon2_animations={}
+Demon2_animations['Idle']=('assets/Enemy/Demon_3/Idle.png',6)
+Demon2_animations['Walk']=('assets/Enemy/Demon_3/Walk.png',12)
+Demon2_animations['Attack']=('assets/Enemy/Demon_3/Attack.png',9)
+Demon2_animations['Stunned']=('assets/Enemy/Demon_3/Hurt.png',3)
+Demon2_animations['Dead']=('assets/Enemy/Demon_3/Dead.png',8)
 
+
+Demon3_animations={}
+Demon3_animations['Idle']=('assets/Enemy/Demon_4/Idle.png',7)
+Demon3_animations['Walk']=('assets/Enemy/Demon_4/Walk.png',1)
+Demon3_animations['Attack']=('assets/Enemy/Demon_4/Attack.png',12)
+Demon3_animations['Stunned']=('assets/Enemy/Demon_4/Hurt.png',3)
+Demon3_animations['Dead']=('assets/Enemy/Demon_4/Dead.png',3)
 
 Demon4_animations={}
-Demon4_animations['Idle']=('assets/Enemy/Demon_4/Idle.png',7)
-Demon4_animations['Walk']=('assets/Enemy/Demon_4/Walk.png',1)
-Demon4_animations['Attack']=('assets/Enemy/Demon_4/Attack.png',12)
-Demon4_animations['Stunned']=('assets/Enemy/Demon_4/Hurt.png',3)
-Demon4_animations['Dead']=('assets/Enemy/Demon_4/Dead.png',3)
+Demon4_animations['Idle']=('assets/Enemy/Onre/Idle.png',6)
+Demon4_animations['Walk']=('assets/Enemy/Onre/Walk.png',7)
+Demon4_animations['Attack']=('assets/Enemy/Onre/Attack_1.png',5)
+Demon4_animations['Stunned']=('assets/Enemy/Onre/Hurt.png',3)
+Demon4_animations['Dead']=('assets/Enemy/Onre/Dead.png',6)
+Demon4_animations['Run']=('assets/Enemy/Onre/Run.png',7)
 
 Demon5_animations={}
-Demon5_animations['Idle']=('assets/Enemy/Onre/Idle.png',6)
-Demon5_animations['Walk']=('assets/Enemy/Onre/Walk.png',7)
-Demon5_animations['Attack']=('assets/Enemy/Onre/Attack_1.png',5)
-Demon5_animations['Stunned']=('assets/Enemy/Onre/Hurt.png',3)
-Demon5_animations['Dead']=('assets/Enemy/Onre/Dead.png',6)
-Demon5_animations['Run']=('assets/Enemy/Onre/Run.png',7)
+Demon5_animations['Idle']=('assets/Enemy/Yurei/Idle.png',5)
+Demon5_animations['Walk']=('assets/Enemy/Yurei/Run.png',5)
+Demon5_animations['Attack']=('assets/Enemy/Yurei/Attack_3.png',7)
+Demon5_animations['Stunned']=('assets/Enemy/Yurei/Hurt.png',3)
+Demon5_animations['Dead']=('assets/Enemy/Yurei/Dead.png',4)
+
 
 Rin_animations={}
 Rin_animations['Idle']=('assets/alliance/Girl_2/Idle.png',6)
@@ -97,3 +105,7 @@ Money_animation['Idle']=('assets/items/Money.png',6)
 
 charge_animation={}
 charge_animation['Idle']=('assets/weapon/Charge.png',5)
+
+charge_pink_animation={}
+charge_pink_animation['Idle']=('assets/Enemy/Yurei/Charge_2.png',4)
+

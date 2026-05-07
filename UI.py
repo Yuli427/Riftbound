@@ -120,6 +120,7 @@ def draw_shop_menu(screen, font, player_money):
        color=(255, 215, 0) if 'Your Money'in line_content else cons.PURPLE
        line_text=Text(start_x,start_y+(i*line_height),line_content,font,color)
        line_text.draw_text(screen)
+    
       
 def draw_dialog(screen, font, alliance,sentence):
       
@@ -131,7 +132,20 @@ def draw_dialog(screen, font, alliance,sentence):
       screen.blit(overlay, (0, cons.SCREEN_HEIGHT - cons.SCREEN_HEIGHT//6))
     
      
-      lines = [sentence]
+      max_width = cons.SCREEN_WIDTH - 60  # 左右各留30像素边距
+      words = sentence.split(' ')         # 按空格拆分单词
+      lines = []
+      current_line = ""
+
+      for word in words:
+            # 测试如果加上这个单词，长度是否超过限制
+            test_line = current_line + word + " "
+            if font.size(test_line)[0] < max_width:
+                current_line = test_line
+            else:
+                lines.append(current_line)  # 换行
+                current_line = word + " "
+      lines.append(current_line)          # 加入最后一行
 
       start_x = 30
       start_y = (cons.SCREEN_HEIGHT - cons.SCREEN_HEIGHT//6)+30

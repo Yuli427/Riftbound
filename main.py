@@ -26,17 +26,19 @@ pygame.display.set_caption(game_name)
 clock= pygame.time.Clock()
 
 #define game variables
-level=1
 start_game=False
 pause_game=False
 tileset_path = 'assets/object/obj.tsj'
 tileset_dir = os.path.dirname(tileset_path)
 start_intro=False
-level_complete=False
-game_begin=False
 is_shopmenu=False
 show_goal_dialog=False
 is_purchased=False
+
+level_complete_shop = False
+pending_level_load = False
+
+
 
 is_alived_agian=False
 potion_spawned=False
@@ -53,6 +55,7 @@ enemy1_cooldown=random.randint(3000,5000)
 enemy2_cooldown=0
 enemy3_cooldown=0
 enemy4_cooldown=0
+enemy5_cooldown=0
 
 item_spawn_cooldown=random.randint(3000,5000)
 
@@ -74,6 +77,7 @@ is_attacking=False
 is_dashing=False
 is_changing_character=False
 is_jumping=False
+current_level='1'
 is_level1=True
 is_level2=False
 is_level3=False
@@ -81,7 +85,7 @@ is_level3=False
 #load button image
 start_img=pygame.image.load("assets/buttons/start_btn.png").convert()
 resume_img=pygame.image.load("assets/buttons/resume_btn.png").convert()
-exit_img=pygame.image.load("assets/buttons/exit_btn.png").convert()
+exit_img=pygame.image.load("assets/buttons/exit_btn.jpg").convert()
 restart_img=pygame.image.load("assets/buttons/restart_btn.png").convert()
 #load background img
 bg_img = pygame.image.load("assets/Background/Night/1.png").convert()
@@ -321,6 +325,7 @@ death_fade=UI.ScreenFade(2,(0,0,0),7)
 
 #create text
 vertical_text=UI.Text(452,130,'未\n来\nの\n世\n界',JAPA_font,cons.WHITE)
+
 #Level_text=UI.Text(10,15,f'Level:{level}',font,cons.PINK)
 #create buttons
 restart_button=Button(cons.SCREEN_WIDTH//2-145,cons.SCREEN_HEIGHT//2-50,restart_img)
@@ -331,30 +336,85 @@ exit_button=Button(cons.SCREEN_WIDTH//2-145,cons.SCREEN_HEIGHT//2+50,exit_img)
 game_run=True
 
 
-def reset_level(world,player,enemy_list,fireballs,charge,dagame_Text_group, item_group,
+def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group, item_group,
                 world_data, object_data, platform_data, tile_list, obj_tile_list):
-    if enemy_list:
-     enemy_list.clear()
-    if fireballs:
-     fireballs.clear()
-    if charge:
-     charge.clear()
+    
+    global num_of_enemy_killed
+    num_of_enemy_killed=0
 
-     world.process_data(world_data, object_data, platform_data, tile_list, obj_tile_list)
+    enemy_list.clear()
+    fireballs.empty()
+    charge.empty()
+    dagame_Text_group.empty()
+    item_group.empty()
+    item_group.add(money_icon)
     
-    world.scrollx=0
-    world.scrolly=0
-    
-    
-    player.health=100
-    player.alive=True
+
+    # 重新读CSV
+    def read_csv(path):
+        data = [[-1] * cons.COLUMN for _ in range(cons.ROWS)]
+        with open(path, newline='') as f:
+            for y, row in enumerate(csv.reader(f)):
+                for x, tile in enumerate(row):
+                    data[y][x] = int(tile)
+        return data
+
+    if is_level1:
+        new_world_data    = read_csv('levels/l1/level1_background.csv')
+        new_platform_data = read_csv('levels/l1/level1_Platform.csv')
+        new_object_data   = read_csv('levels/l1/level1_Objects.csv')
+        new_layer_data = [[-1] * cons.COLUMN for _ in range(cons.ROWS)] #empty
+    elif is_level2:
+        new_world_data    = read_csv('levels/l2/level2_background.csv')
+        new_platform_data = read_csv('levels/l2/level2_Platform.csv')
+        new_object_data   = read_csv('levels/l2/level2_Objects.csv')
+        new_layer_data    = read_csv('levels/l2/level2_layer.csv')
+    else:
+        new_world_data    = read_csv('levels/l3/level3_background.csv')
+        new_platform_data = read_csv('levels/l3/level3_Platform.csv')
+        new_object_data   = read_csv('levels/l3/level3_Objects.csv')
+        new_layer_data = [[-1] * cons.COLUMN for _ in range(cons.ROWS)]
+
+    # 重新加载tile图片
+    tile_list.clear()
+    obj_tile_list.clear()
+    if is_level1:
+        for x in range(cons.TILE_TYPES):
+            tile_list.append(pygame.image.load(f'assets/level1_background_tile/Tile_{x+1:02d}.png').convert_alpha())
+        for x in range(26):
+            obj_tile_list.append(pygame.image.load(f'assets/level1_obj_tile/{x+1}.png').convert_alpha())
+    elif is_level2:
+        for x in range(cons.TILE_TYPES):
+            tile_list.append(pygame.image.load(f'assets/level2_background_tile/Tiles_{x+1:02d}.png').convert_alpha())
+        for x in range(26):
+            obj_tile_list.append(pygame.image.load(f'assets/level2_obj_tile/{x}.png').convert_alpha())
+    else:
+        for x in range(cons.TILE_TYPES):
+            tile_list.append(pygame.image.load(f'assets/level3_background_tile/Tile_{x+1:02d}.png').convert_alpha())
+        for x in range(41):
+            obj_tile_list.append(pygame.image.load(f'assets/level3_obj_tile/{x+1}.png').convert_alpha())
+
+    # 重建世界
+    world.map_tiles.clear()
+    world.object_tiles.clear()
+    world.obstacle_tiles.clear()
+    world.scroll_x = 0
+    world.scroll_y = 0
+
+    world.process_data(new_world_data, new_layer_data, new_object_data, new_platform_data,
+                       tile_list, obj_tile_list, is_level2, is_level1)
+
+    # 重置玩家
+    player.rect.center = (200, 700)
+    player.vel_y = 0
+    player.health = 100
+    player.alive = True
     player.hit = False
     player.stunned = False
-    player.vel_y = 0
-    player.on_ground = False
-    player.attack_cooldown = 0
-    player.player_state='Idle'
-    player.score=0
+    player.player_state = 'Idle'
+    player.score = 0
+
+   
  
     
 
@@ -380,6 +440,7 @@ while choosing:
         player=Character(200,700,75,animation.Samurai_animations,'0')
     screen.fill(cons.BACK_GROUND)
     UI.draw_choose_menu(screen, font, player_name, selected_gender, game_name,True)
+    name_text=UI.Text(130,15,player_name,font,cons.PURPLE)
     pygame.display.update()
     
     
@@ -392,6 +453,7 @@ while game_run:
         screen.fill((0,0,0))
         if (start_button.draw(screen)):
             start_game=True
+            #播放开场淡入动画
             start_intro=True
         #it become true only when hit the button, so we call draw method here to check the collision
         if(exit_button.draw(screen)):
@@ -414,7 +476,15 @@ while game_run:
             player.score-=cons.Ares
             is_shopmenu=False
             alliance_group.add(Ares)
-        print(alliance.name,len(alliance_group))
+                #check if the level is complete
+        if level_complete_shop and not is_shopmenu:
+                level_complete_shop=False
+                pending_level_load=True
+                #从旧的卡关播放淡出动画
+                start_intro=True
+                #游戏开场用完一次，fade_counter 已经很大了，第二次触发时如果不归零，直接从大值继续，动画瞬间完成，你看不到淡出效果
+                intro_fade.fade_counter=0
+       
     elif is_dialog_active:
        if show_goal_dialog:
            UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $500.')
@@ -526,11 +596,13 @@ while game_run:
 
              enemy1_cooldown-=delta_time
              if enemy2_cooldown > 0:
-              enemy2_cooldown -= delta_time
+                 enemy2_cooldown -= delta_time
              if enemy3_cooldown > 0:
-              enemy3_cooldown -= delta_time
+                 enemy3_cooldown -= delta_time
              if enemy4_cooldown>0:
                  enemy4_cooldown-=delta_time
+             if enemy5_cooldown>0:
+                 enemy5_cooldown-=delta_time
 
              if enemy1_cooldown<=0 and len(enemy_list)<5 and enemy1_on:
                  enemy=Character(x,y,100,animation.Demon1_animations,'1')
@@ -538,24 +610,32 @@ while game_run:
                  enemy1_counter+=1
                  enemy1_cooldown=random.randint(3000,5000)
                  
-
+            #enemy fireball
              #if enemy1_counter>=2 and enemy2_cooldown<=0:
-                 #enemy2=Character(x,y,150,animation.Demon3_animations,'2')
+                 #enemy2=Character(x,y,150,animation.Demon2_animations,'2')
                  #enemy_list.append(enemy2)
                  #enemy2_counter+=1
                  #enemy2_cooldown=random.randint(5000,10000)
                  #enemy1_on=False
             
+            #charge
              #if enemy1_counter>=2 and enemy3_cooldown<=0:
-                 #enemy3=Character(x,y,150,animation.Demon4_animations,'3')
+                 #enemy3=Character(x,y,150,animation.Demon3_animations,'3')
                  #enemy_list.append(enemy3)
                  #enemy3_cooldown=random.randint(10000,20000)
-             
-             if enemy1_counter>=2 and enemy4_cooldown<=0:
-                 enemy4=Character(x,y,100,animation.Demon5_animations,'4')
-                 enemy_list.append(enemy4)
-                 enemy4_cooldown=random.randint(5000,10000)
-                 
+             #enro
+            #  if enemy1_counter>=2 and enemy4_cooldown<=0:
+            #      enemy4=Character(x,y,100,animation.Demon4_animations,'4')
+            #      enemy_list.append(enemy4)
+            #      enemy4_cooldown=random.randint(5000,10000)
+               
+             #if enemy1_counter>=2 and enemy5_cooldown<=0:
+                 #enemy5=Character(x,y,100,animation.Demon5_animations,'5')
+                 #enemy_list.append(enemy5)
+                 #enemy5_cooldown=random.randint(3000,5000)
+
+
+               
                  
                  
              
@@ -589,8 +669,10 @@ while game_run:
                       if enemy.health<=0:
                           num_of_enemy_killed+=1   #because alive is gonna update in update method，想用 alive 也可以，但必须在扣血那一刻同步更新 alive，而不是等 update。
                           enemy.enemy_state='Dead'  #不在这里移除是因为这只在“玩家攻击那一刻”才 remove
-                     #if num_of_enemy_killed>10:  #level complete condition
-                         #level_complete=True
+                      if num_of_enemy_killed>=2 and not level_complete_shop:
+                          level_complete_shop=True
+                          is_shopmenu=True
+                          
                      
                          
         
@@ -598,11 +680,6 @@ while game_run:
              dagame_Text_group.draw(screen)
         
 
-        #check if the level is complete
-             if level_complete==True:
-              start_intro=True
-              level_complete=False
-        
         #enemy update
              for enemy in enemy_list:
                  enemy.update() #make sure call the update first to make alive=false
@@ -681,14 +758,9 @@ while game_run:
          score_text.draw_text(screen)
          score_text.update(screen_scroll)
          Display_time_text.draw_text(screen)
+         name_text.update(screen_scroll)
+         name_text.draw_text(screen)
 
-    
-     #if start intro=true fade screen
-         if start_intro==True:
-             if intro_fade.fade(screen)==True:
-                  start_intro=False
-                  intro_fade.fade_counter=0
-    
     
     #show death screen
          if player.alive==False:
@@ -699,6 +771,24 @@ while game_run:
                   surviving_time=0
             
             
+    #if start intro=true fade screen
+    if start_intro==True:
+             if intro_fade.fade(screen)==True:
+                  start_intro=False
+                  if pending_level_load:
+                      pending_level_load=False
+                      if current_level=='1':
+                         is_level1=False 
+                         is_level2=True
+                         current_level='2'  
+                         reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
+                          
+                      elif current_level=='2':
+                          is_level2=False
+                          is_level3=True
+                          current_level='3'
+                          reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
+                          
 
     #event handler
     for event in pygame.event.get():
@@ -726,8 +816,8 @@ while game_run:
                  wants_close_dialog=True
 
              #choose pal   
-            if event.key==pygame.K_0:
-                is_shopmenu=True
+            # if event.key==pygame.K_0:
+            #     is_shopmenu=True
             if event.key==pygame.K_1:
                 alliance=Rin
                 if player.score>=cons.Fujiwara_Rin:
