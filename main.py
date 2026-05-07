@@ -31,6 +31,7 @@ pause_game=False
 tileset_path = 'assets/object/obj.tsj'
 tileset_dir = os.path.dirname(tileset_path)
 start_intro=False
+opening_intro=False
 is_shopmenu=False
 show_goal_dialog=False
 is_purchased=False
@@ -481,7 +482,7 @@ while game_run:
                 level_complete_shop=False
                 pending_level_load=True
                 #从旧的卡关播放淡出动画
-                start_intro=True
+                opening_intro=True
                 #游戏开场用完一次，fade_counter 已经很大了，第二次触发时如果不归零，直接从大值继续，动画瞬间完成，你看不到淡出效果
                 intro_fade.fade_counter=0
        
@@ -493,6 +494,23 @@ while game_run:
        if wants_close_dialog:
           is_dialog_active=False
           wants_close_dialog=False
+
+    elif opening_intro:
+         #if start intro=true fade screen
+             if intro_fade.fade(screen)==True:
+                  opening_intro=False
+                  if pending_level_load:
+                      pending_level_load=False
+                      if current_level=='1':
+                         is_level1=False 
+                         is_level2=True
+                         current_level='2'  
+                         reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
+                      elif current_level=='2':
+                          is_level2=False
+                          is_level3=True
+                          current_level='3'
+                          reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)                
     else:
       if pause_game==True:
             if not is_shopmenu:
@@ -771,24 +789,12 @@ while game_run:
                   surviving_time=0
             
             
-    #if start intro=true fade screen
-    if start_intro==True:
+         if start_intro==True:
              if intro_fade.fade(screen)==True:
                   start_intro=False
-                  if pending_level_load:
-                      pending_level_load=False
-                      if current_level=='1':
-                         is_level1=False 
-                         is_level2=True
-                         current_level='2'  
-                         reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
-                          
-                      elif current_level=='2':
-                          is_level2=False
-                          is_level3=True
-                          current_level='3'
-                          reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
-                          
+                  intro_fade.fade_counter=0
+    
+
 
     #event handler
     for event in pygame.event.get():
