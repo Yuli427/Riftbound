@@ -1,0 +1,186 @@
+{ "columns":0,
+ "grid":
+    {
+     "height":1,
+     "orientation":"orthogonal",
+     "width":1
+    },
+ "margin":0,
+ "name":"obj",
+ "spacing":0,
+ "tilecount":28,
+ "tiledversion":"1.11.2",
+ "tileheight":74,
+ "tiles":[
+        {
+         "id":0,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Lamps\/1.png",
+         "imageheight":31,
+         "imagewidth":19
+        }, 
+        {
+         "id":1,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Lamps\/2.png",
+         "imageheight":31,
+         "imagewidth":19
+        }, 
+        {
+         "id":2,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Lamps\/3.png",
+         "imageheight":31,
+         "imagewidth":19
+        }, 
+        {
+         "id":3,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/1.png",
+         "imageheight":24,
+         "imagewidth":63
+        }, 
+        {
+         "id":4,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/2.png",
+         "imageheight":40,
+         "imagewidth":28
+        }, 
+        {
+         "id":5,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/3.png",
+         "imageheight":36,
+         "imagewidth":38
+        }, 
+        {
+         "id":6,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/4.png",
+         "imageheight":23,
+         "imagewidth":44
+        }, 
+        {
+         "id":7,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/5.png",
+         "imageheight":44,
+         "imagewidth":44
+        }, 
+        {
+         "id":8,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/6.png",
+         "imageheight":74,
+         "imagewidth":30
+        }, 
+        {
+         "id":9,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/7.png",
+         "imageheight":12,
+         "imagewidth":43
+        }, 
+        {
+         "id":10,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/8.png",
+         "imageheight":42,
+         "imagewidth":24
+        }, 
+        {
+         "id":11,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/9.png",
+         "imageheight":56,
+         "imagewidth":57
+        }, 
+        {
+         "id":12,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/10.png",
+         "imageheight":39,
+         "imagewidth":42
+        }, 
+        {
+         "id":13,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/11.png",
+         "imageheight":50,
+         "imagewidth":30
+        }, 
+        {
+         "id":14,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Signboards\/12.png",
+         "imageheight":35,
+         "imagewidth":34
+        }, 
+        {
+         "id":15,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Terrace\/1.png",
+         "imageheight":22,
+         "imagewidth":32
+        }, 
+        {
+         "id":16,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Terrace\/2.png",
+         "imageheight":22,
+         "imagewidth":32
+        }, 
+        {
+         "id":17,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Terrace\/3.png",
+         "imageheight":24,
+         "imagewidth":15
+        }, 
+        {
+         "id":18,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Terrace\/4.png",
+         "imageheight":24,
+         "imagewidth":13
+        }, 
+        {
+         "id":19,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Terrace\/5.png",
+         "imageheight":24,
+         "imagewidth":18
+        }, 
+        {
+         "id":20,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Terrace\/6.png",
+         "imageheight":64,
+         "imagewidth":74
+        }, 
+        {
+         "id":21,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Vending machines\/1.png",
+         "imageheight":56,
+         "imagewidth":128
+        }, 
+        {
+         "id":22,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Vending machines\/2.png",
+         "imageheight":46,
+         "imagewidth":30
+        }, 
+        {
+         "id":23,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Vending machines\/3.png",
+         "imageheight":48,
+         "imagewidth":32
+        }, 
+        {
+         "id":24,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Vending machines\/4.png",
+         "imageheight":64,
+         "imagewidth":30
+        }, 
+        {
+         "id":25,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Vending machines\/5.png",
+         "imageheight":48,
+         "imagewidth":32
+        }, 
+        {
+         "id":26,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Vending machines\/6.png",
+         "imageheight":59,
+         "imagewidth":32
+        }, 
+        {
+         "id":27,
+         "image":"..\/..\/..\/cyberpunk_obj\/3 Objects\/Vending machines\/7.png",
+         "imageheight":59,
+         "imagewidth":32
+        }],
+ "tilewidth":128,
+ "type":"tileset",
+ "version":"1.10"
+}
