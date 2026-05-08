@@ -120,7 +120,42 @@ def draw_shop_menu(screen, font, player_money):
        color=(255, 215, 0) if 'Your Money'in line_content else cons.PURPLE
        line_text=Text(start_x,start_y+(i*line_height),line_content,font,color)
        line_text.draw_text(screen)
-    
+
+def draw_loading(screen,font):
+      overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT))
+      overlay.fill((0,0,0))
+      overlay.set_alpha(150)
+      screen.blit(overlay, (0,0))
+
+      lines = [
+        "Loading..."]
+      
+      start_x = 30
+      start_y = cons.SCREEN_HEIGHT//2
+      line_height = 35
+      
+      for i,line_content in enumerate(lines):
+       color=(255, 215, 0) if 'Your Money'in line_content else cons.PURPLE
+       line_text=Text(start_x,start_y+(i*line_height),line_content,font,color)
+       line_text.draw_text(screen)
+
+def draw_victory(screen,font):
+      overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT))
+      overlay.fill((0,0,0))
+      overlay.set_alpha(150)
+      screen.blit(overlay, (0,0))
+
+      lines = [
+        "You won! good job!"]
+      
+      start_x = cons.SCREEN_WIDTH//2-30
+      start_y = cons.SCREEN_HEIGHT//2
+      line_height = 35
+      
+      for i,line_content in enumerate(lines):
+       color=(255, 215, 0) if 'Your Money'in line_content else cons.PURPLE
+       line_text=Text(start_x,start_y+(i*line_height),line_content,font,color)
+       line_text.draw_text(screen)
       
 def draw_dialog(screen, font, alliance,sentence):
       

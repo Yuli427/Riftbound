@@ -13,6 +13,15 @@ School_girl_animations['Jump']=('assets/Player/Girl_2/Jump.png',15)
 School_girl_animations['Hurt']=('assets/Player/Girl_2/Hurt.png',3)
 School_girl_animations['Dead']=('assets/Player/Girl_2/Death.png',5)
 
+School_girl2_animations={}
+School_girl2_animations['Idle']=('assets/Player/Girl_1/Idle.png',9)
+School_girl2_animations['Walk']=('assets/Player/Girl_1/Walk.png',12)
+School_girl2_animations['Attack']=('assets/Player/Girl_1/Attack.png',8)
+School_girl2_animations['Jump']=('assets/Player/Girl_1/Jump.png',15)
+School_girl2_animations['Hurt']=('assets/Player/Girl_1/Hurt.png',3)
+School_girl2_animations['Dead']=('assets/Player/Girl_1/Death.png',5)
+
+
 
 Samurai_animations={}
 Samurai_animations['Idle']=('assets/Player/Samurai/Idle.png',6)
@@ -75,7 +84,7 @@ Vesper_animations={}
 Vesper_animations['Idle']=('assets/alliance/Girl_3/Idle.png',6)
 Vesper_animations['Follow']=('assets/alliance/Girl_3/Walk.png',12)
 Vesper_animations['Attack']=('assets/alliance/Girl_3/Attack_1.png',4)
-Vesper_animations['Stunned']=('assets/alliance/Girl_3/Hurt.png',2)
+Vesper_animations['Stunned']=('assets/alliance/Girl_3/Hurt.png',3)
 Vesper_animations['Dead']=('assets/alliance/Girl_3/Dead.png',4)
 Vesper_animations['Jump']=('assets/alliance/Girl_3/Jump.png',10)
 Vesper_animations['Run']=('assets/alliance/Girl_3/Run.png',12)

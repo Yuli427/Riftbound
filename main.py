@@ -33,13 +33,16 @@ tileset_dir = os.path.dirname(tileset_path)
 start_intro=False
 opening_intro=False
 is_shopmenu=False
-show_goal_dialog=False
+show_goal_dialog_l1=False
+show_goal_dialog_l2=False
 is_purchased=False
+not_purchased=False
 
 level_complete_shop = False
 pending_level_load = False
 
-
+opening_intro_timer=cons.INTRO_TIMER
+victory_timer=cons.VICTORY_TIMER
 
 is_alived_agian=False
 potion_spawned=False
@@ -301,10 +304,10 @@ enemy_list=[]
 coffee=Item(32,400,'1',coffee_img,None,False)
 money_icon=Item(30,25,'0',money_icon_img,None,True)
 #score_cake=Item(cons.SCREEN_WIDTH-220,25,'0',cake_img,None,True)
-Rin=All(400,700,'Rin',animation.Rin_animations)
-Vesper=All(400,700,'Vesper',animation.Vesper_animations)
-Fuma=All(400,700,'Fuma',animation.Fuma_animations)
-Ares=All(400,700,'Ares',animation.Ares_animations)
+Rin=All(450,700,'Rin',animation.Rin_animations)
+Vesper=All(450,700,'Vesper',animation.Vesper_animations)
+Fuma=All(450,700,'Fuma',animation.Fuma_animations)
+Ares=All(450,700,'Ares',animation.Ares_animations)
 #default
 alliance=Rin
 #create sprite groups
@@ -342,6 +345,10 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     
     global num_of_enemy_killed
     num_of_enemy_killed=0
+    global is_dialog_active
+    is_dialog_active=False
+    global is_purchased
+    is_purchased=False
 
     enemy_list.clear()
     fireballs.empty()
@@ -426,9 +433,9 @@ while choosing:
                 choosing = False
             elif event.key == pygame.K_BACKSPACE:
                 player_name = player_name[:-1]
-            elif event.key == pygame.K_m:
+            elif event.key == pygame.K_LEFT:
                 selected_gender = 'Male'
-            elif event.key == pygame.K_f:
+            elif event.key == pygame.K_RIGHT:
                 selected_gender = 'Female'
             else:
                 if len(player_name) < 12:  
@@ -460,35 +467,41 @@ while game_run:
         if(exit_button.draw(screen)):
             game_run=False
     elif is_shopmenu==True:
-        UI.draw_shop_menu(screen, smaller_font, player.score)
-        if is_purchased==True and alliance.name== 'Rin' :
-            player.score-=cons.Fujiwara_Rin
-            is_shopmenu=False
-            alliance_group.add(Rin)
-        elif is_purchased==True and alliance.name== 'Vesper' :
-           player.score-=cons.Vesper
-           is_shopmenu=False
-           alliance_group.add(Vesper)
-        elif is_purchased==True and alliance.name== 'Fuma' :
-            player.score-=cons.Himura
-            is_shopmenu=False
-            alliance_group.add(Fuma)
-        elif is_purchased==True and alliance.name=='Ares' :
-            player.score-=cons.Ares
-            is_shopmenu=False
-            alliance_group.add(Ares)
-                #check if the level is complete
-        if level_complete_shop and not is_shopmenu:
-                level_complete_shop=False
-                pending_level_load=True
-                #从旧的卡关播放淡出动画
-                opening_intro=True
-                #游戏开场用完一次，fade_counter 已经很大了，第二次触发时如果不归零，直接从大值继续，动画瞬间完成，你看不到淡出效果
-                intro_fade.fade_counter=0
-       
+        if victory_timer>0:
+            UI.draw_victory(screen,font)
+            victory_timer-=delta_time
+        if victory_timer<=0:
+                screen.fill((0,0,0))
+                UI.draw_shop_menu(screen, smaller_font, player.score)
+                if is_purchased==True and alliance.name== 'Rin' :
+                     player.score-=cons.Fujiwara_Rin
+                     is_shopmenu=False
+                     alliance_group.add(Rin)
+                elif is_purchased==True and alliance.name== 'Vesper' :
+                     player.score-=cons.Vesper
+                     is_shopmenu=False
+                     alliance_group.add(Vesper)
+                elif is_purchased==True and alliance.name== 'Fuma' :
+                     player.score-=cons.Himura
+                     is_shopmenu=False
+                     alliance_group.add(Fuma)
+                elif is_purchased==True and alliance.name=='Ares' :
+                     player.score-=cons.Ares
+                     is_shopmenu=False
+                     alliance_group.add(Ares)
+                elif not_purchased:
+                     is_shopmenu=False
+                        #check if the level is complete
+                if level_complete_shop and not is_shopmenu:
+                        level_complete_shop=False
+                        opening_intro=True
+                        victory_timer=cons.VICTORY_TIMER
+
     elif is_dialog_active:
-       if show_goal_dialog:
+       if show_goal_dialog_l1 and current_level=='1':
            UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $500.')
+       elif show_goal_dialog_l2 and current_level=='2':
+           UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $1000.')
        else:
            UI.draw_dialog(screen,font,alliance,dialog_message)
        if wants_close_dialog:
@@ -497,36 +510,37 @@ while game_run:
 
     elif opening_intro:
          #if start intro=true fade screen
-             if intro_fade.fade(screen)==True:
-                  opening_intro=False
-                  if pending_level_load:
-                      pending_level_load=False
-                      if current_level=='1':
-                         is_level1=False 
-                         is_level2=True
-                         current_level='2'  
-                         reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
-                      elif current_level=='2':
-                          is_level2=False
-                          is_level3=True
-                          current_level='3'
-                          reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)                
+                if opening_intro_timer>0:
+                  opening_intro_timer-=delta_time
+                  UI.draw_loading(screen,font)
+                  if opening_intro_timer<=0:
+                        opening_intro=False
+                        opening_intro_timer=cons.INTRO_TIMER
+                        if current_level=='1':
+                            is_level1=False 
+                            is_level2=True
+                            current_level='2'  
+                            reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
+                        elif current_level=='2':
+                            is_level2=False
+                            is_level3=True
+                            current_level='3'
+                            reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)                
     else:
       if pause_game==True:
-            if not is_shopmenu:
                 screen.fill((0,0,0))
                 if(resume_button.draw(screen)):
                     pause_game=False
                 if(exit_button.draw(screen)):
                     game_run=False
-            else:
-                if(resume_button.draw(screen)):
-                    pause_game=False
       else:
          
-         if not show_goal_dialog and not start_intro:
+         if not show_goal_dialog_l1 and not start_intro :
           is_dialog_active=True
-          show_goal_dialog=True
+          show_goal_dialog_l1=True
+         elif not show_goal_dialog_l2 and not opening_intro and is_level2:
+          is_dialog_active=True
+          show_goal_dialog_l2=True
 
          surviving_time+=delta_time
          total_sec=surviving_time//1000
@@ -687,9 +701,10 @@ while game_run:
                       if enemy.health<=0:
                           num_of_enemy_killed+=1   #because alive is gonna update in update method，想用 alive 也可以，但必须在扣血那一刻同步更新 alive，而不是等 update。
                           enemy.enemy_state='Dead'  #不在这里移除是因为这只在“玩家攻击那一刻”才 remove
-                      if num_of_enemy_killed>=2 and not level_complete_shop:
+                      if num_of_enemy_killed>=1 and not level_complete_shop:
                           level_complete_shop=True
                           is_shopmenu=True
+                
                           
                      
                          
@@ -823,23 +838,26 @@ while game_run:
 
              #choose pal   
             # if event.key==pygame.K_0:
-            #     is_shopmenu=True
-            if event.key==pygame.K_1:
-                alliance=Rin
-                if player.score>=cons.Fujiwara_Rin:
-                 is_purchased=True
-            if event.key==pygame.K_2:
-                alliance=Vesper
-                if player.score>=cons.Vesper:
-                 is_purchased=True
-            if event.key==pygame.K_3:
-                alliance=Fuma
-                if player.score>=cons.Himura:
-                 is_purchased=True
-            if event.key==pygame.K_4:
-                alliance=Ares
-                if player.score>=cons.Ares:
-                 is_purchased=True
+            if is_shopmenu:
+                if event.key==pygame.K_1:
+                    alliance=Rin
+                    if player.score>=cons.Fujiwara_Rin:
+                     is_purchased=True
+                if event.key==pygame.K_2:
+                    alliance=Vesper
+                    if player.score>=cons.Vesper:
+                     is_purchased=True
+                if event.key==pygame.K_3:
+                    alliance=Fuma
+                    if player.score>=cons.Himura:
+                     is_purchased=True
+                if event.key==pygame.K_4:
+                    alliance=Ares
+                    if player.score>=cons.Ares:
+                     is_purchased=True
+                if event.key==pygame.K_ESCAPE:
+                     not_purchased=True
+
             
         
         if event.type ==pygame.MOUSEBUTTONDOWN:

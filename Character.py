@@ -280,8 +280,9 @@ class Character():
                 clipped_line=obstacle.clipline(line_of_sight)
                 break  # if there is clipped line stop checking other tiles
         #dist < ATTACK_RANGE 的几何形状是一个圆, so if player in the circle enemy can hit it
-        dy=abs(self.rect.centery-player.rect.centery)
+        dy=abs(self.rect.centery-player.rect.centery) #player dy
         dy_alliance=abs(self.rect.centery-alliance.rect.centery) #当敌人在玩家上方时，dy 是正数；当敌人在玩家下方时，dy 就会变成负数。
+        dx=abs(self.rect.centerx-player.rect.centerx)#player dx
         #default idle state
         if self.health<=0 or self.alive==False:
             self.enemy_state='Dead'
@@ -331,9 +332,10 @@ class Character():
                      #boss enemy shoot fireballs
                 elif dist_alliance<cons.ATTACK_RANGE and dy_alliance<20 and not clipped_line:
                   self.enemy_state='Attack'
+                  ai_dx=0
                   if alliance.hit==False and alliance.alive:
                       alliance.hit=True
-                      alliance.health-=40
+                      alliance.health-=0
                       alliance.last_hit=pygame.time.get_ticks()
 
                 elif self.char_type=='2' and dist<500:
@@ -343,7 +345,7 @@ class Character():
                          fire_ball_place_holder=fireball
                          self.last_fireball_attack=pygame.time.get_ticks()
             
-                elif not clipped_line:#if the enemy can see the player and they are far from player, they go towards the player
+                elif not clipped_line and dy<60:#if the enemy can see the player and they are far from player, they go towards the player
                     
                     #先检查是否有路没有的话不走dx=0
                     if hit_wall or reached_edge:
@@ -378,9 +380,9 @@ class Character():
                         self.facing_right=not self.facing_right
                         
                     if self.facing_right:
-                            ai_dx=cons.ENEMY_SPEED
+                            ai_dx=cons.ENEMY_SPEED_SLOW
                     elif not self.facing_right:
-                            ai_dx=-cons.ENEMY_SPEED
+                            ai_dx=-cons.ENEMY_SPEED_SLOW
                     
 
    

@@ -90,19 +90,18 @@ class Alliance(pygame.sprite.Sprite):
 
     
 
-    
-
-        
 
     def find_closest_enemy(self, enemy_list):   
        closest=None
        min_dist=self.detect_range
        for enemy in enemy_list:
           if enemy.alive==True and enemy.health>0:
-             dist=math.sqrt(((self.rect.centerx-enemy.rect.centerx)**2) + ((self.rect.centery-enemy.rect.centery)**2)) 
-             if dist<min_dist:
+             dx = abs(self.rect.centerx - enemy.rect.centerx)
+             dy = abs(self.rect.centery - enemy.rect.centery)
+             weighted_dist = math.sqrt(dx**2 + (dy * 2.5)**2) 
+             if weighted_dist<min_dist:
                 #确认谁才是离你最近的敌人
-                min_dist=dist
+                min_dist=weighted_dist
                 closest=enemy
        return closest
     
@@ -142,26 +141,33 @@ class Alliance(pygame.sprite.Sprite):
             self.facing_right=True
        elif self.dx<0:
             self.facing_right=False
-       else:
-           self.facing_right=True
-      
        
    
     def attack_logic(self,enemylist,world):
         if not self.target:
             return
 
-        dist = math.sqrt(
-            (self.rect.centerx - self.target.rect.centerx) ** 2 +(self.rect.centery - self.target.rect.centery) ** 2)
+        # dist = math.sqrt(
+        #     (self.rect.centerx - self.target.rect.centerx) ** 2 +(self.rect.centery - self.target.rect.centery) ** 2)
+        # dx_to_target = self.target.rect.centerx - self.rect.centerx
+        # dy_to_target = self.target.rect.centery - self.rect.centery
         
-        if dist>self.attack_range:
+        dx_to_target = self.target.rect.centerx - self.rect.centerx
+        dy_to_target = self.target.rect.centery - self.rect.centery
 
-            if self.rect.centerx>self.target.rect.centerx:
-                self.dx=-self.speed
-            elif self.rect.centerx<self.target.rect.centerx:    
-                self.dx=self.speed
+        abs_dx = abs(dx_to_target)
+        abs_dy = abs(dy_to_target)
+        
+        in_attack_range = abs_dx < self.attack_range and abs_dy < 60
+
+        if not in_attack_range:
+            if abs_dy<60:
+                if self.rect.centerx>self.target.rect.centerx:
+                    self.dx=-self.speed
+                elif self.rect.centerx<self.target.rect.centerx:    
+                    self.dx=self.speed
             else:
-                self.dx=0
+                    self.dx=0
             # if self.rect.centery>self.target.rect.centery:
             #     self.dy=-self.speed
             # if self.rect.centery<self.target.rect.centery:
@@ -179,7 +185,7 @@ class Alliance(pygame.sprite.Sprite):
             self.dy=0
             self.dx=0
             if self.attack_cooldown<=0:
-                damage=1
+                damage=40
                 self.target.health-=damage
                 self.target.stunned=True
                 self.target.stun_until=cons.STUN_TIME
