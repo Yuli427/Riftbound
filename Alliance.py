@@ -30,7 +30,7 @@ class Alliance(pygame.sprite.Sprite):
      self.stun_until=0
 
      self.followdist=100
-     self.detect_range=500
+     self.detect_range=1000
      self.attack_range=50
      self.attack_cooldown=0
      self.dist_to_tile=150
@@ -157,6 +157,12 @@ class Alliance(pygame.sprite.Sprite):
 
         abs_dx = abs(dx_to_target)
         abs_dy = abs(dy_to_target)
+
+        if abs_dy>=60:
+            self.rect.centerx = self.target.rect.centerx-10
+            self.rect.bottom = self.target.rect.bottom
+            self.vel_y = 0
+            return
         
         in_attack_range = abs_dx < self.attack_range and abs_dy < 60
 
