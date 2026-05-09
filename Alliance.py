@@ -36,12 +36,13 @@ class Alliance(pygame.sprite.Sprite):
      self.dist_to_tile=150
      self.vel_y=0
 
-     self.speed=cons.ENEMY_SPEED
+     self.speed=cons.ALLIANCE_SPPED
+     self.fast_speed=cons.ALLIANCE_FAST_SPPED
      self.facing_right=False
      self.on_ground=False
      self.is_attacking=False
      self.is_jumping=False
-     
+     self.is_running=False
 
 
      self.dy=0
@@ -71,6 +72,7 @@ class Alliance(pygame.sprite.Sprite):
         
 
        if self.alive and not self.stunned:
+           self.is_running=False
            self.target=self.find_closest_enemy(enemy_list)
 
            if self.target :
@@ -106,11 +108,10 @@ class Alliance(pygame.sprite.Sprite):
        return closest
     
     def follow_logic(self,player,world):
-       
+       self.is_running=False
        #先算和玩家的距离
        x_dist=abs(self.rect.centerx-player.rect.centerx)
        y_dist=self.rect.centery-player.rect.centery
-
        if x_dist<self.followdist:
         self.dx=0
         return
@@ -168,10 +169,11 @@ class Alliance(pygame.sprite.Sprite):
 
         if not in_attack_range:
             if abs_dy<60:
+                self.is_running=True
                 if self.rect.centerx>self.target.rect.centerx:
-                    self.dx=-self.speed
+                    self.dx=-self.fast_speed
                 elif self.rect.centerx<self.target.rect.centerx:    
-                    self.dx=self.speed
+                    self.dx=self.fast_speed
             else:
                     self.dx=0
             # if self.rect.centery>self.target.rect.centery:
@@ -247,7 +249,11 @@ class Alliance(pygame.sprite.Sprite):
         elif not self.on_ground and self.is_jumping:
             new_state='Jump'
         elif self.dx!=0 and self.on_ground:
+            if self.is_running:
+             new_state='Run'
+            else:
              new_state='Follow'
+        
         else:
             new_state='Idle'
 
