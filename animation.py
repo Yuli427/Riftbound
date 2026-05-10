@@ -38,7 +38,7 @@ Demon1_animations['Attack']=('assets/Enemy/Demon_1/Attack.png',6)
 Demon1_animations['Stunned']=('assets/Enemy/Demon_1/Hurt.png',6)
 Demon1_animations['Dead']=('assets/Enemy/Demon_1/Dead.png',11)
 
-
+#火球
 Demon2_animations={}
 Demon2_animations['Idle']=('assets/Enemy/Demon_3/Idle.png',6)
 Demon2_animations['Walk']=('assets/Enemy/Demon_3/Walk.png',12)

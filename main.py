@@ -49,6 +49,7 @@ potion_spawned=False
 is_dialog_active=False
 wants_close_dialog=False
 dialog_message=''
+show_dialog_timer=3000
 
 #initial choices
 player_name = ''
@@ -64,14 +65,47 @@ enemy5_cooldown=0
 item_spawn_cooldown=random.randint(3000,5000)
 
 num_of_enemy_killed=0
-surviving_time=0
+enemy_left=0
 
 enemy1_counter=0
 enemy2_counter=0
 enemy3_counter=0
 enemy4_counter=0
 
-enemy1_on=True
+current_wave = 0        # 当前是第几波（0表示还没开始）
+wave_active = False     # 当前波是否正在进行
+wave_cleared = False    # 当前波是否清完了
+
+
+
+
+L1_WAVES = [
+    [(animation.Demon3_animations, '3', 3)],                          
+    [(animation.Demon1_animations, '1', 5)],                          
+    [(animation.Demon1_animations, '1', 3), (animation.Demon4_animations, '4', 2)],  
+]
+L2_WAVES = [
+    [(animation.Demon1_animations, '1', 3), 
+     (animation.Demon2_animations, '2', 1)],          
+    
+    [(animation.Demon1_animations, '1', 4), 
+     (animation.Demon2_animations, '2', 2)],          
+    
+    [(animation.Demon1_animations, '1', 3), 
+     (animation.Demon4_animations, '4', 2),
+     (animation.Demon2_animations, '2', 1)],          
+    
+    [(animation.Demon3_animations, '3', 2),
+     (animation.Demon2_animations, '2', 2)],          
+]
+L3_WAVES = [
+    [(animation.Demon1_animations, '1', 3),
+     (animation.Demon2_animations, '2', 2),
+     (animation.Demon5_animations, '5', 1)],    
+    
+    [(animation.Demon3_animations, '3', 2),
+     (animation.Demon4_animations, '4', 2)],   
+]
 #define player movement variable
 moving_left=False
 moving_up=False
@@ -283,6 +317,15 @@ else:
 world=World()
 world.process_data(world_data,layer_data,object_data,platform_data,tile_list,obj_tile_list,is_level2,is_level1)
 
+spawn_tile = []
+tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
+for tile in world.obstacle_tiles:
+    cx = tile.centerx
+    top = tile.top
+    left1  = (cx - cons.TILE_SIZE, top) in tile_set
+    right1 = (cx + cons.TILE_SIZE, top) in tile_set
+    if left1 or right1:
+        spawn_tile.append((tile.centerx, tile.top - cons.ENEMY_HEIGHT))
 
 
 
@@ -330,6 +373,7 @@ death_fade=UI.ScreenFade(2,(0,0,0),7)
 #create text
 vertical_text=UI.Text(452,130,'未\n来\nの\n世\n界',JAPA_font,cons.WHITE)
 
+
 #Level_text=UI.Text(10,15,f'Level:{level}',font,cons.PINK)
 #create buttons
 restart_button=Button(cons.SCREEN_WIDTH//2-145,cons.SCREEN_HEIGHT//2-50,restart_img)
@@ -343,13 +387,18 @@ game_run=True
 def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group, item_group,
                 world_data, object_data, platform_data, tile_list, obj_tile_list):
     
-    global num_of_enemy_killed
-    num_of_enemy_killed=0
+    global show_dialog_timer
     global is_dialog_active
-    is_dialog_active=False
     global is_purchased
+    global current_wave
+    global wave_active
+    global enemy_left
+    show_dialog_timer=3000
     is_purchased=False
-
+    is_dialog_active=False
+    enemy_left=0
+    current_wave = 0
+    wave_active = False
     enemy_list.clear()
     fireballs.empty()
     charge.empty()
@@ -411,6 +460,18 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
 
     world.process_data(new_world_data, new_layer_data, new_object_data, new_platform_data,
                        tile_list, obj_tile_list, is_level2, is_level1)
+    
+
+    global spawn_tile
+    spawn_tile = []
+    tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
+    for tile in world.obstacle_tiles:
+        cx = tile.centerx
+        top = tile.top
+        left1  = (cx - cons.TILE_SIZE, top) in tile_set
+        right1 = (cx + cons.TILE_SIZE, top) in tile_set
+        if left1 or right1:
+            spawn_tile.append((tile.centerx, tile.top - cons.ENEMY_HEIGHT))
 
     # 重置玩家
     player.rect.center = (200, 700)
@@ -448,7 +509,7 @@ while choosing:
         player=Character(200,700,75,animation.Samurai_animations,'0')
     screen.fill(cons.BACK_GROUND)
     UI.draw_choose_menu(screen, font, player_name, selected_gender, game_name,True)
-    name_text=UI.Text(130,15,player_name,font,cons.PURPLE)
+    name_text=UI.Text(200,15,player_name,font,cons.PURPLE)
     pygame.display.update()
     
     
@@ -489,13 +550,15 @@ while game_run:
                      player.score-=cons.Ares
                      is_shopmenu=False
                      alliance_group.add(Ares)
-                elif not_purchased:
-                     is_shopmenu=False
                         #check if the level is complete
+                elif not_purchased:
+                    is_shopmenu=False
+
                 if level_complete_shop and not is_shopmenu:
                         level_complete_shop=False
                         opening_intro=True
                         victory_timer=cons.VICTORY_TIMER
+                        
 
     elif is_dialog_active:
        if show_goal_dialog_l1 and current_level=='1':
@@ -525,7 +588,7 @@ while game_run:
                             is_level2=False
                             is_level3=True
                             current_level='3'
-                            reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)                
+                            reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)               
     else:
       if pause_game==True:
                 screen.fill((0,0,0))
@@ -534,21 +597,27 @@ while game_run:
                 if(exit_button.draw(screen)):
                     game_run=False
       else:
+          
          
-         if not show_goal_dialog_l1 and not start_intro :
-          is_dialog_active=True
-          show_goal_dialog_l1=True
-         elif not show_goal_dialog_l2 and not opening_intro and is_level2:
-          is_dialog_active=True
-          show_goal_dialog_l2=True
+              
 
-         surviving_time+=delta_time
-         total_sec=surviving_time//1000
-         minutes = total_sec // 60
-         seconds = total_sec % 60
-         time_text = f"{minutes:02d}:{seconds:02d}"
-         Display_time_text=UI.Text(cons.SCREEN_WIDTH-400,15,f'Survived time:{time_text}',font,cons.PURPLE)
 
+         show_dialog_timer-=delta_time
+         if show_dialog_timer<0:
+            if not show_goal_dialog_l1 and not start_intro :
+              is_dialog_active=True
+              show_goal_dialog_l1=True
+            elif not show_goal_dialog_l2 and not opening_intro and is_level2:
+              is_dialog_active=True
+              show_goal_dialog_l2=True
+            
+
+        #  surviving_time+=delta_time
+        #  total_sec=surviving_time//1000
+        #  minutes = total_sec // 60
+        #  seconds = total_sec % 60
+        #  time_text = f"{minutes:02d}:{seconds:02d}"
+        
          screen.blit(bg_img,(0,0))
          screen.blit(bg_img_building,(0,0))
          #screen.blit(object_images[0],(300,400))
@@ -607,18 +676,18 @@ while game_run:
              world.scroll_y+=screen_scroll[1]
          
         
-            #enemy spawn
-             spawn_tile=[]
-             tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
-             for tile in world.obstacle_tiles:
-                  cx = tile.centerx
-                  top = tile.top
-                  left1  = (cx - cons.TILE_SIZE, top) in tile_set
-                  right1 = (cx + cons.TILE_SIZE, top) in tile_set
+            # #enemy spawn
+            #  spawn_tile=[]
+            #  tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
+            #  for tile in world.obstacle_tiles:
+            #       cx = tile.centerx
+            #       top = tile.top
+            #       left1  = (cx - cons.TILE_SIZE, top) in tile_set
+            #       right1 = (cx + cons.TILE_SIZE, top) in tile_set
 
-            #append the obstacle tiles x and y instead of rect, make it more precise
-                  if left1 or right1:
-                   spawn_tile.append((tile.centerx,tile.top-cons.ENEMY_HEIGHT))
+            # #append the obstacle tiles x and y instead of rect, make it more precise
+            #       if left1 or right1:
+            #        spawn_tile.append((tile.centerx,tile.top-cons.ENEMY_HEIGHT))
         
              x,y=random.choice(spawn_tile)
        
@@ -636,12 +705,78 @@ while game_run:
              if enemy5_cooldown>0:
                  enemy5_cooldown-=delta_time
 
-             if enemy1_cooldown<=0 and len(enemy_list)<5 and enemy1_on:
-                 enemy=Character(x,y,100,animation.Demon1_animations,'1')
-                 enemy_list.append(enemy)
-                 enemy1_counter+=1
-                 enemy1_cooldown=random.randint(3000,5000)
-                 
+            
+             if is_level1:
+                #start it if wave is not active, it is active but player clean all the enemies
+                if not wave_active or (wave_active and len(enemy_list)==0):
+                    if wave_active:
+                        current_wave+=1
+                    #check if there is another wave
+                    if current_wave<len(L1_WAVES):
+                        wave_active=True
+                        #spwan the enemy for this wave
+                        for(anim,ctype,count) in L1_WAVES[current_wave]:
+                            for _ in range(count): #不会用到i就用_
+                                x,y=random.choice(spawn_tile)
+                                enemy=Character(x,y,100,anim,ctype)
+                                enemy_list.append(enemy)
+                           
+                    else:
+                        #if this is the last wave,deactivate the wave
+                        wave_active=False
+                        if not level_complete_shop and player.score>=100:
+                            level_complete_shop=True
+                            is_shopmenu=True
+             if is_level2:
+                    #start it if wave is not active, it is active but player clean all the enemies
+                    if not wave_active or (wave_active and len(enemy_list)==0):
+                        if wave_active:
+                            current_wave+=1
+                       
+                        if current_wave<len(L2_WAVES):
+                            wave_active=True
+                            for(anim,ctype,count) in L2_WAVES[current_wave]:
+                                for _ in range(count): 
+                                    x,y=random.choice(spawn_tile)
+                                    enemy=Character(x,y,100,anim,ctype)
+                                    enemy_list.append(enemy)
+                               
+                        else:
+                            wave_active=False
+                            if not level_complete_shop and player.score>=100:
+                                level_complete_shop=True
+                                is_shopmenu=True
+             if is_level3:
+                    
+                    if not wave_active or (wave_active and len(enemy_list)==0):
+                        if wave_active:
+                            current_wave+=1
+                       
+                        if current_wave<len(L3_WAVES):
+                            wave_active=True
+                            for(anim,ctype,count) in L3_WAVES[current_wave]:
+                                for _ in range(count): 
+                                    x,y=random.choice(spawn_tile)
+                                    enemy=Character(x,y,100,anim,ctype)
+                                    enemy_list.append(enemy)
+                                
+                        else:
+                           wave_active=False
+
+
+                # if enemy1_cooldown<=0 and len(enemy_list)<3 :
+                #     enemy=Character(x,y,100,animation.Demon1_animations,'1')
+                #     enemy_list.append(enemy)
+                #     enemy1_counter+=1
+                #     enemy1_cooldown=random.randint(3000,5000)
+                
+                # #enro
+                # if enemy1_counter>=2 and enemy4_cooldown<=0:
+                #   enemy4=Character(x,y,100,animation.Demon4_animations,'4')
+                #   enemy_list.append(enemy4)
+                #   enemy4_cooldown=random.randint(5000,10000)
+
+
             #enemy fireball
              #if enemy1_counter>=2 and enemy2_cooldown<=0:
                  #enemy2=Character(x,y,150,animation.Demon2_animations,'2')
@@ -655,11 +790,7 @@ while game_run:
                  #enemy3=Character(x,y,150,animation.Demon3_animations,'3')
                  #enemy_list.append(enemy3)
                  #enemy3_cooldown=random.randint(10000,20000)
-             #enro
-            #  if enemy1_counter>=2 and enemy4_cooldown<=0:
-            #      enemy4=Character(x,y,100,animation.Demon4_animations,'4')
-            #      enemy_list.append(enemy4)
-            #      enemy4_cooldown=random.randint(5000,10000)
+            
                
              #if enemy1_counter>=2 and enemy5_cooldown<=0:
                  #enemy5=Character(x,y,100,animation.Demon5_animations,'5')
@@ -699,11 +830,9 @@ while game_run:
                      #if there is a enemy hit my player then apply knockback
                       enemy.apply_knockback(player,world)
                       if enemy.health<=0:
-                          num_of_enemy_killed+=1   #because alive is gonna update in update method，想用 alive 也可以，但必须在扣血那一刻同步更新 alive，而不是等 update。
+                                              #because alive is gonna update in update method，想用 alive 也可以，但必须在扣血那一刻同步更新 alive，而不是等 update。
                           enemy.enemy_state='Dead'  #不在这里移除是因为这只在“玩家攻击那一刻”才 remove
-                      if num_of_enemy_killed>=1 and not level_complete_shop:
-                          level_complete_shop=True
-                          is_shopmenu=True
+
                 
                           
                      
@@ -771,6 +900,10 @@ while game_run:
          for enemy in enemy_list:
           if not enemy.remove_me:
               enemy.draw(screen)
+
+         enemy_left = len(enemy_list)
+         enemy_left_text = UI.Text(cons.SCREEN_WIDTH-300, 15, f'Enemies: {enemy_left}', font, cons.PURPLE)
+         enemy_left_text.draw_text(screen)
     
     #item
          for item in item_group:
@@ -790,7 +923,6 @@ while game_run:
          score_text=UI.Text(50,15,f'{player.score}',font,cons.PURPLE)
          score_text.draw_text(screen)
          score_text.update(screen_scroll)
-         Display_time_text.draw_text(screen)
          name_text.update(screen_scroll)
          name_text.draw_text(screen)
 
@@ -801,7 +933,7 @@ while game_run:
               if restart_button.draw(screen):
                   death_fade.fade_counter=0
                   reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
-                  surviving_time=0
+                  
             
             
          if start_intro==True:
@@ -828,10 +960,10 @@ while game_run:
             if event.key==pygame.K_SPACE:
                  is_jumping=True
             if event.key==pygame.K_ESCAPE:
-                if is_shopmenu==True:
-                 is_shopmenu=False
-                else:
-                 pause_game=True
+                 if is_shopmenu:
+                     not_purchased=True
+                 else:
+                    pause_game=True
             if event.key==pygame.K_RETURN:
                 if is_dialog_active:
                  wants_close_dialog=True
@@ -855,8 +987,8 @@ while game_run:
                     alliance=Ares
                     if player.score>=cons.Ares:
                      is_purchased=True
-                if event.key==pygame.K_ESCAPE:
-                     not_purchased=True
+
+
 
             
         

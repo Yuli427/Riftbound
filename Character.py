@@ -11,10 +11,9 @@ class Character():
     #char type=0 player, char type=1 normal enemy, char type=2 enemy without gravity
     def __init__(self,x,y,health,animation,char_type):
         #x,y,w,h(w,h for collision box)
-        if char_type=='2':
+        
+        if char_type=='3':# charge demon
              self.rect=pygame.Rect(0,0,48,90)
-             
-             
         else:
             self.rect=pygame.Rect(0,0,48,70)
               #put the center of rect on x and y
@@ -431,11 +430,11 @@ class Character():
         #move the center of the image to the center of collision box
         image_rect.midbottom=self.rect.midbottom
         
-        if self.char_type=='2':
-            image_rect.center=self.rect.center
-            #把图片向上移动，不用移动hitbox
-            #image_rect.centery=self.rect.centery-15
-            image_rect.centery = self.rect.centery
+        # if self.char_type=='3':
+        #     image_rect.center=self.rect.center
+        #     #把图片向上移动，不用移动hitbox
+        #     #image_rect.centery=self.rect.centery-15
+        #     image_rect.centery = self.rect.centery
         
         
         if self.facing_right==False:
