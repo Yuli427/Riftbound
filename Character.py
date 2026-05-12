@@ -3,7 +3,7 @@ import math
 import random
 import animation
 import Constants as cons
-from Weapon import Fire_ball, Charge
+from Weapon import Fire_ball, Charge ,Arrow
 from item import Item
 import Helper 
 
@@ -53,7 +53,9 @@ class Character():
         self.hit=False
         self.last_hit=pygame.time.get_ticks()
         self.last_fireball_attack=0
+        self.last_lightning_attack=0
         self.fireball_cooldown =700
+        self.lightning_cooldown=2000
 
         self.charge_cooldown=2000 
         self.last_charge_attack=-2000
@@ -258,6 +260,7 @@ class Character():
         clipped_line=()
         fire_ball_place_holder=None
         charge_place_holder=None
+        Arrow_place_holder=None
         
         ai_dx=0
         ai_dy=0
@@ -318,6 +321,15 @@ class Character():
                         charge_place_holder = charge
                         self.has_charged=True
                         self.last_charge_attack = now
+            elif self.char_type=='Boss':
+                self.enemy_state='Ranged_Attack'
+                if self.lightning_cooldown>0:
+                    if pygame.time.get_ticks()-self.last_lightning_attack>=self.lightning_cooldown:
+                        angle = math.degrees(math.atan2(-(player.rect.centery - self.rect.centery),player.rect.centerx - self.rect.centerx))
+                        arrow = Arrow(None, self.rect.centerx, self.rect.centery, angle, animation.lightning_animation)
+                        Arrow_place_holder=arrow
+                        self.last_lightning_attack=pygame.time.get_ticks()
+                
             else:
                 #attack player 
                 if dist<cons.ATTACK_RANGE and dy<20 and not clipped_line:
@@ -328,7 +340,7 @@ class Character():
                      #player.health-=10
                      player.hit=True
                      player.last_hit=pygame.time.get_ticks()
-                     #boss enemy shoot fireballs
+                   
                 elif dist_alliance<cons.ATTACK_RANGE and dy_alliance<20 and not clipped_line:
                   self.enemy_state='Attack'
                   ai_dx=0
@@ -420,7 +432,7 @@ class Character():
         
 
       
-        return charge_place_holder,fire_ball_place_holder
+        return charge_place_holder,fire_ball_place_holder,Arrow_place_holder
 
 
     def draw(self,surface):
@@ -428,8 +440,19 @@ class Character():
         #create a rect for image
         image_rect=self.image.get_rect()
         #move the center of the image to the center of collision box
-        image_rect.midbottom=self.rect.midbottom
         
+
+        if self.char_type=='Boss':
+            scale_factor=1.5
+            scaled_width = int(self.image.get_width() * scale_factor)
+            scaled_height = int(self.image.get_height() * scale_factor)
+            draw_image=pygame.transform.scale(self.image, (scaled_width, scaled_height))
+        else:
+            draw_image=self.image
+        
+        image_rect=draw_image.get_rect()
+        image_rect.midbottom=self.rect.midbottom
+
         # if self.char_type=='3':
         #     image_rect.center=self.rect.center
         #     #把图片向上移动，不用移动hitbox
@@ -438,10 +461,10 @@ class Character():
         
         
         if self.facing_right==False:
-             flipped_image=pygame.transform.flip(self.image,True,False)
+             flipped_image=pygame.transform.flip(draw_image,True,False)
              surface.blit(flipped_image,image_rect)
         else:
-             surface.blit(self.image,image_rect)
+             surface.blit(draw_image,image_rect)
         pygame.draw.rect(surface,cons.RED,self.rect,1)  
         
    

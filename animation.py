@@ -21,15 +21,22 @@ School_girl2_animations['Jump']=('assets/Player/Girl_1/Jump.png',15)
 School_girl2_animations['Hurt']=('assets/Player/Girl_1/Hurt.png',3)
 School_girl2_animations['Dead']=('assets/Player/Girl_1/Death.png',5)
 
+School_boy1_animations={}
+School_boy1_animations['Idle']=('assets/Player/Boy_1/Idle.png',7)
+School_boy1_animations['Walk']=('assets/Player/Boy_1/Walk.png',12)
+School_boy1_animations['Attack']=('assets/Player/Boy_1/Attack.png',8)
+School_boy1_animations['Jump']=('assets/Player/Boy_1/Jump.png',15)
+School_boy1_animations['Hurt']=('assets/Player/Boy_1/Hurt.png',3)
+School_boy1_animations['Dead']=('assets/Player/Boy_1/Death.png',5)
 
+School_boy2_animations={}
+School_boy2_animations['Idle']=('assets/Player/Boy_2/Idle.png',7)
+School_boy2_animations['Walk']=('assets/Player/Boy_2/Walk.png',12)
+School_boy2_animations['Attack']=('assets/Player/Boy_2/Attack.png',8)
+School_boy2_animations['Jump']=('assets/Player/Boy_2/Jump.png',15)
+School_boy2_animations['Hurt']=('assets/Player/Boy_2/Hurt.png',3)
+School_boy2_animations['Dead']=('assets/Player/Boy_2/Death.png',5)
 
-Samurai_animations={}
-Samurai_animations['Idle']=('assets/Player/Samurai/Idle.png',6)
-Samurai_animations['Walk']=('assets/Player/Samurai/Walk.png',8)
-Samurai_animations['Attack']=('assets/Player/Samurai/Attack_1.png',6)
-Samurai_animations['Jump']=('assets/Player/Samurai/Jump.png',12)
-Samurai_animations['Hurt']=('assets/Player/Samurai/Hurt.png',2)
-Samurai_animations['Dead']=('assets/Player/Samurai/Dead.png',3)
 
 Demon1_animations={}
 Demon1_animations['Idle']=('assets/Enemy/Demon_1/Idle.png',8)
@@ -68,6 +75,16 @@ Demon5_animations['Walk']=('assets/Enemy/Yurei/Run.png',5)
 Demon5_animations['Attack']=('assets/Enemy/Yurei/Attack_3.png',7)
 Demon5_animations['Stunned']=('assets/Enemy/Yurei/Hurt.png',3)
 Demon5_animations['Dead']=('assets/Enemy/Yurei/Dead.png',4)
+
+
+Boss_animations={}
+Boss_animations['Idle']=('assets/Enemy/Stone_Golem/Idle.png',6)
+Boss_animations['Attack']=('assets/Enemy/Stone_Golem/Attack_1.png',5)
+Boss_animations['Stunned']=('assets/Enemy/Stone_Golem/Hurt.png',4)
+Boss_animations['Walk']=('assets/Enemy/Stone_Golem/Walk.png',7)
+Boss_animations['Dead']=('assets/Enemy/Stone_Golem/Dead.png',9)
+
+
 
 
 Rin_animations={}
@@ -117,4 +134,7 @@ charge_animation['Idle']=('assets/weapon/Charge.png',5)
 
 charge_pink_animation={}
 charge_pink_animation['Idle']=('assets/Enemy/Yurei/Charge_2.png',4)
+
+lightning_animation={}
+lightning_animation['Idle']=('assets/weapon/lightning_Arrow.png',12)
 

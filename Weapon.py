@@ -58,9 +58,24 @@ class Weapon():
 
 
 class Arrow(pygame.sprite.Sprite): 
-    def __init__(self,image,x,y,angle):
+    def __init__(self,image,x,y,angle,animation):
         pygame.sprite.Sprite.__init__(self)
-        self.original_image = image
+
+        self.frame_index=0
+        self.animation_speed=0.15
+
+
+        if animation==None:
+             self.frames=[image]
+             self.original_image=image
+        else:
+             self.animations={}
+             for key in animation:
+                 self.animations[key]=Helper.load_image(self,animation[key][0],animation[key][1])
+             self.frames=self.animations['Idle']
+             self.original_image=self.frames[self.frame_index]
+
+
         self.angle=angle
         self.image= pygame.transform.rotate(self.original_image,self.angle)
         self.rect=self.image.get_rect()
@@ -69,37 +84,33 @@ class Arrow(pygame.sprite.Sprite):
         self.dx=math.cos(math.radians(self.angle))*cons.ARROW_SPEED
         self.dy=-math.sin(math.radians(self.angle))*cons.ARROW_SPEED
 
-    def update(self,enemy_list):
+    def update(self,player):
         #reset variable
         damage=0
-        damage_pos=None
-        hit_enemy=None
         #reposition based on speed
         self.rect.x+=self.dx
         self.rect.y+=self.dy
+
+        Helper.animate(self)
 
         #check if arrow has gone off screen
         if self.rect.right<0 or self.rect.left>cons.SCREEN_WIDTH or self.rect.bottom<0 or self.rect.top>cons.SCREEN_HEIGHT:
             self.kill()
         
         #check collision between arrow and enemy
-        for enemy in enemy_list:
-            if enemy.rect.colliderect(self.rect) and enemy.alive:
-                damage= 10 + random.randint(-5,5)
-                enemy.health-=damage
-                #reference(address)
-                hit_enemy=enemy
-                damage_pos=enemy.rect
-                #delete this arrow
+        
+        if player.rect.colliderect(self.rect) and player.alive:
+                # damage= 10 + random.randint(-5,5)
+                player.health-=damage
                 self.kill()
-                break # stop checking more enemies – one arrow should only hit one target
-        return damage,damage_pos,hit_enemy
+                  # stop checking more enemies – one arrow should only hit one target
+        
 
 
     def draw(self,surface):
       old_center=self.rect.center
       #minus 90 degree to adjust the arrow angle
-      self.image=pygame.transform.rotate(self.original_image,self.angle-90)
+      self.image=pygame.transform.rotate(self.original_image,self.angle-180)
       self.rect=self.image.get_rect(center=old_center)
 
       surface.blit(self.image,self.rect)

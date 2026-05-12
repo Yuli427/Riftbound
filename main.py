@@ -80,7 +80,7 @@ wave_cleared = False    # 当前波是否清完了
 
 
 L1_WAVES = [
-    [(animation.Demon3_animations, '3', 3)],                          
+    [(animation.Demon1_animations, '1', 3)],                          
     [(animation.Demon1_animations, '1', 5)],                          
     [(animation.Demon1_animations, '1', 3), (animation.Demon4_animations, '4', 2)],  
 ]
@@ -331,7 +331,7 @@ for tile in world.obstacle_tiles:
 
 #create enemy
 #enemy=Character(200,700,100,animation.Demon1_animations,'1')
-boss=Character(600,700,100,animation.Demon3_animations,'boss')
+#boss=Character(600,700,100,animation.Demon3_animations,'Boss')
 
 #create enemy list
 enemy_list=[]
@@ -393,6 +393,9 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     global current_wave
     global wave_active
     global enemy_left
+    global is_level1
+    global is_level2
+    global is_level3
     show_dialog_timer=3000
     is_purchased=False
     is_dialog_active=False
@@ -455,13 +458,13 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     world.map_tiles.clear()
     world.object_tiles.clear()
     world.obstacle_tiles.clear()
-    world.scroll_x = 0
-    world.scroll_y = 0
+
 
     world.process_data(new_world_data, new_layer_data, new_object_data, new_platform_data,
                        tile_list, obj_tile_list, is_level2, is_level1)
     
-
+    world.scroll_x = 0
+    world.scroll_y = 0
     global spawn_tile
     spawn_tile = []
     tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
@@ -506,7 +509,7 @@ while choosing:
     if selected_gender=='Female':
         player=Character(200,700,75,animation.School_girl_animations,'0')
     else:
-        player=Character(200,700,75,animation.Samurai_animations,'0')
+        player=Character(200,700,75,animation.School_boy1_animations,'0')
     screen.fill(cons.BACK_GROUND)
     UI.draw_choose_menu(screen, font, player_name, selected_gender, game_name,True)
     name_text=UI.Text(200,15,player_name,font,cons.PURPLE)
@@ -676,20 +679,20 @@ while game_run:
              world.scroll_y+=screen_scroll[1]
          
         
-            # #enemy spawn
+            # # #enemy spawn
             #  spawn_tile=[]
             #  tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
             #  for tile in world.obstacle_tiles:
-            #       cx = tile.centerx
-            #       top = tile.top
-            #       left1  = (cx - cons.TILE_SIZE, top) in tile_set
-            #       right1 = (cx + cons.TILE_SIZE, top) in tile_set
+            #        cx = tile.centerx
+            #        top = tile.top
+            #        left1  = (cx - cons.TILE_SIZE, top) in tile_set
+            #        right1 = (cx + cons.TILE_SIZE, top) in tile_set
 
-            # #append the obstacle tiles x and y instead of rect, make it more precise
-            #       if left1 or right1:
-            #        spawn_tile.append((tile.centerx,tile.top-cons.ENEMY_HEIGHT))
+            #  #append the obstacle tiles x and y instead of rect, make it more precise
+            #        if left1 or right1:
+            #         spawn_tile.append((tile.centerx,tile.top-cons.ENEMY_HEIGHT))
         
-             x,y=random.choice(spawn_tile)
+            #  x,y=random.choice(spawn_tile)
        
 
         
@@ -713,11 +716,15 @@ while game_run:
                         current_wave+=1
                     #check if there is another wave
                     if current_wave<len(L1_WAVES):
+                        print(f"spawn_tile数量: {len(spawn_tile)}")
                         wave_active=True
                         #spwan the enemy for this wave
                         for(anim,ctype,count) in L1_WAVES[current_wave]:
                             for _ in range(count): #不会用到i就用_
-                                x,y=random.choice(spawn_tile)
+                                sx,sy=random.choice(spawn_tile)
+                                #因为spawn tile的位置已改变， 玩家移动过了，scroll 不是0，原始坐标已经偏离屏幕，所以刷在看不到的地方
+                                x=sx+world.scroll_x
+                                y=sy+world.scroll_y
                                 enemy=Character(x,y,100,anim,ctype)
                                 enemy_list.append(enemy)
                            
@@ -737,7 +744,9 @@ while game_run:
                             wave_active=True
                             for(anim,ctype,count) in L2_WAVES[current_wave]:
                                 for _ in range(count): 
-                                    x,y=random.choice(spawn_tile)
+                                    sx,sy=random.choice(spawn_tile)
+                                    x=sx+world.scroll_x
+                                    y=sy+world.scroll_y
                                     enemy=Character(x,y,100,anim,ctype)
                                     enemy_list.append(enemy)
                                
@@ -756,7 +765,9 @@ while game_run:
                             wave_active=True
                             for(anim,ctype,count) in L3_WAVES[current_wave]:
                                 for _ in range(count): 
-                                    x,y=random.choice(spawn_tile)
+                                    sx,sy=random.choice(spawn_tile)
+                                    x=sx+world.scroll_x
+                                    y=sy+world.scroll_y
                                     enemy=Character(x,y,100,anim,ctype)
                                     enemy_list.append(enemy)
                                 
@@ -849,11 +860,13 @@ while game_run:
                      enemy_list.remove(enemy)
                      continue
                  #fireball=enemy.ai(fire_ball_image,player,world,screen_scroll)
-                 charge,fireball=enemy.ai(fire_ball_image,player,alliance,world,screen_scroll)
+                 charge,fireball,arrow=enemy.ai(fire_ball_image,player,alliance,world,screen_scroll)
                  if fireball:
                   fire_ball_group.add(fireball)
                  if charge:
                   charge_group.add(charge)
+                 if arrow:
+                   arrow_group.add(arrow)
                    
             
             #print(enemy.alive)
@@ -864,6 +877,10 @@ while game_run:
               fireball.update(screen_scroll,player)
              for fireball in fire_ball_group:
               fireball.draw(screen)
+             for arrows in arrow_group:
+                 arrows.update(player)
+             for arrows in arrow_group:
+                 arrows.draw(screen)
              for charge in charge_group:
               charge.update(screen_scroll,player)
              for charge in charge_group:
@@ -872,6 +889,7 @@ while game_run:
                 all.update(player,enemy_list,world,screen_scroll)
              for all in alliance_group:
                 all.draw(screen)
+
     
          player.update()
          player.draw(screen)
