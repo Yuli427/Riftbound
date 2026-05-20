@@ -58,11 +58,14 @@ class Weapon():
 
 
 class Arrow(pygame.sprite.Sprite): 
-    def __init__(self,image,x,y,angle,animation):
+    def __init__(self,image,x,y,angle,animation,arrow_type):
         pygame.sprite.Sprite.__init__(self)
 
         self.frame_index=0
         self.animation_speed=0.15
+
+        self.type=arrow_type
+
 
 
         if animation==None:
@@ -98,10 +101,11 @@ class Arrow(pygame.sprite.Sprite):
             self.kill()
         
         #check collision between arrow and enemy
-        
-        if player.rect.colliderect(self.rect) and player.alive:
+        if self.type=='Freez':
+         if player.rect.colliderect(self.rect) and player.alive:
                 # damage= 10 + random.randint(-5,5)
-                player.health-=damage
+                player.is_freezed=True
+                player.last_freeze=pygame.time.get_ticks()
                 self.kill()
                   # stop checking more enemies – one arrow should only hit one target
         
@@ -227,6 +231,7 @@ class Charge(pygame.sprite.Sprite):
             player.last_hit=pygame.time.get_ticks()
             #player.health-=10
             
+            
     
     def draw(self,surface):
          surface.blit(self.image,self.rect)
@@ -234,5 +239,111 @@ class Charge(pygame.sprite.Sprite):
     
 
    
+class Tornado(pygame.sprite.Sprite):
+    def __init__(self, x, y, animation):
+        pygame.sprite.Sprite.__init__(self)
+        
+        self.frame_index = 0
+        self.animation_speed = 0.15
+        
+        # 跟 Item 一样的加载方式
+        self.animations = {}
+        for key in animation:
+            self.animations[key] = Helper.load_image(self, animation[key][0], animation[key][1])
+        self.frames = self.animations['Idle']
+        self.image = self.frames[self.frame_index]
+        
+        self.rect = pygame.Rect(0, 0, 40, 40)
+        self.rect.midbottom = (x, y)
+        
+        self.speed = 2
+        self.facing_right = True
+        self.spawn_time = pygame.time.get_ticks()
+        self.lifetime = 6000
+        self.attack_cooldown = 0
 
+    def update(self, screen_scroll, player, world):
+        if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
+            self.kill()
+            return
+
+        # 跟随 scroll
+        self.rect.x += screen_scroll[0]
+        self.rect.y += screen_scroll[1]
+
+        # 左右移动
+        if self.facing_right:
+            self.rect.x += self.speed
+        else:
+            self.rect.x -= self.speed
+
+        # 碰墙反转
+        for tile in world.obstacle_tiles:
+            if tile.colliderect(self.rect):
+                self.facing_right = not self.facing_right
+                break
+
+        # 伤害玩家
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+        if self.rect.colliderect(player.rect):
+            if self.attack_cooldown <= 0:
+                player.hit = True
+                player.last_hit = pygame.time.get_ticks()
+                self.attack_cooldown = 60
+
+        Helper.animate(self)
+
+    def draw(self, surface):
+        draw_image = self.image
+        if not self.facing_right:
+            draw_image = pygame.transform.flip(self.image, True, False)
+        surface.blit(draw_image, self.rect)
+        pygame.draw.rect(surface, cons.RED, self.rect, 1)
+
+
+class FireHazard(pygame.sprite.Sprite):
+    def __init__(self, x, y, animation):
+        pygame.sprite.Sprite.__init__(self)
+        
+        self.frame_index = 0
+        self.animation_speed = 0.15
+
+        # 跟 Item 一样的加载方式
+        self.animations = {}
+        for key in animation:
+            self.animations[key] = Helper.load_image(self, animation[key][0], animation[key][1])
+        self.frames = self.animations['Idle']
+        self.image = self.frames[self.frame_index]
+
+        self.rect = pygame.Rect(0, 0, 40, 40)
+        self.rect.midbottom = (x, y)
+
+        self.spawn_time = pygame.time.get_ticks()
+        self.lifetime = 10000
+        self.attack_cooldown = 0
+
+    def update(self, screen_scroll, player):
+        if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
+            self.kill()
+            return
+
+        # 跟随 scroll
+        self.rect.x += screen_scroll[0]
+        self.rect.y += screen_scroll[1]
+
+        # 伤害玩家
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
+        if self.rect.colliderect(player.rect):
+            if self.attack_cooldown <= 0:
+                player.hit = True
+                player.last_hit = pygame.time.get_ticks()
+                self.attack_cooldown = 60
+
+        Helper.animate(self)
+
+    def draw(self, surface):
+        surface.blit(self.image, self.rect)
+        pygame.draw.rect(surface, cons.RED, self.rect, 1)
 

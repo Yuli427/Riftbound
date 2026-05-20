@@ -83,6 +83,8 @@ Boss_animations['Attack']=('assets/Enemy/Stone_Golem/Attack_1.png',5)
 Boss_animations['Stunned']=('assets/Enemy/Stone_Golem/Hurt.png',4)
 Boss_animations['Walk']=('assets/Enemy/Stone_Golem/Walk.png',7)
 Boss_animations['Dead']=('assets/Enemy/Stone_Golem/Dead.png',9)
+Boss_animations['Ranged_Attack']=('assets/Enemy/Stone_Golem/Attack_3.png',2)
+
 
 
 
@@ -138,3 +140,8 @@ charge_pink_animation['Idle']=('assets/Enemy/Yurei/Charge_2.png',4)
 lightning_animation={}
 lightning_animation['Idle']=('assets/weapon/lightning_Arrow.png',12)
 
+wind_ball_animation={}
+wind_ball_animation['Idle']=('assets/weapon/wind.png',8)
+
+Fire_animation={}
+Fire_animation['Idle']=('assets/weapon/Fire_5.png',5)

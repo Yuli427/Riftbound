@@ -47,11 +47,14 @@ class Character():
         self.alive=True
         self.score=0
         self.camera_offsety=0
+        self.is_freezed=False
+        self.freeze_timer=1000
+        self.last_freeze=0
 
         self.attack_cooldown=0
 
         self.hit=False
-        self.last_hit=pygame.time.get_ticks()
+        self.last_hit=0 #这里改动了
         self.last_fireball_attack=0
         self.last_lightning_attack=0
         self.fireball_cooldown =700
@@ -60,12 +63,13 @@ class Character():
         self.charge_cooldown=2000 
         self.last_charge_attack=-2000
        
-          
+        self.has_teleported = False
         self.has_charged = False
 
         self.stunned=False
         self.stun_until=0
-
+        
+        self.max_health_boss=100
 
 
         self.enemy_state='Idle'
@@ -75,6 +79,9 @@ class Character():
         self.aggro_timer = 0
        
         self.player_state='Idle'
+
+        self.tornado_spawned = False
+
 
         
 
@@ -109,13 +116,13 @@ class Character():
             self.stunned=False
         
         
-
-        Helper.animate(self)
+        if not self.player_state=='Freezed':
+         Helper.animate(self)
     
        
 
     def move(self,dx,dy,world):
-        if self.char_type not in ['3', '5'] or not self.alive :
+        if self.char_type not in ['3', '5','Boss'] or not self.alive :
          #这里的 vel_y 代表 Vertical Velocity（纵向速度）+= 1：意味着每一帧循环，物体的向下速度都会增加 1 个单位。
          self.vel_y+=1
          #将当前计算出的“瞬时速度”赋值给一个临时变量 dy
@@ -132,6 +139,7 @@ class Character():
              #dy= dy *(math.sqrt(2)/2)
         
         # X axis
+
         self.rect.x+=dx
         
         #Y axis
@@ -322,14 +330,45 @@ class Character():
                         self.has_charged=True
                         self.last_charge_attack = now
             elif self.char_type=='Boss':
-                self.enemy_state='Ranged_Attack'
-                if self.lightning_cooldown>0:
-                    if pygame.time.get_ticks()-self.last_lightning_attack>=self.lightning_cooldown:
-                        angle = math.degrees(math.atan2(-(player.rect.centery - self.rect.centery),player.rect.centerx - self.rect.centerx))
-                        arrow = Arrow(None, self.rect.centerx, self.rect.centery, angle, animation.lightning_animation)
-                        Arrow_place_holder=arrow
-                        self.last_lightning_attack=pygame.time.get_ticks()
+                    self.vel_y=0
+                    self.enemy_state='Walk'
+                    dx_vec = player.rect.centerx - self.rect.centerx
+                    dy_vec = player.rect.centery - self.rect.centery
+                    
+                    if dist==0:
+                        dist=0.1
+                    if dist > 0:
+                        ai_dx = (dx_vec / dist) * cons.ENEMY_SPEED
+                        ai_dy = (dy_vec / dist) * cons.ENEMY_SPEED
                 
+
+
+                    if dist>cons.LONG_DISTANCE_ATTACK_RANGE:
+                        self.enemy_state='Walk'
+                    else:
+                        if player.is_freezed:
+                            self.enemy_state='Attack'
+                            self.rect.centerx=player.rect.centerx+50
+                            self.rect.centery=player.rect.centery
+                            if self.attack_cooldown <= 0:
+                                #player.health -= 30
+                                player.hit = True
+                                player.last_hit = pygame.time.get_ticks()
+                                self.attack_cooldown = 60
+                        else:
+                            if self.lightning_cooldown>0:
+                                self.enemy_state='Ranged_Attack'
+                                if pygame.time.get_ticks()-self.last_lightning_attack>=self.lightning_cooldown:
+                                    angle = math.degrees(math.atan2(-(player.rect.centery - self.rect.centery),player.rect.centerx - self.rect.centerx))
+                                    arrow = Arrow(None, self.rect.centerx, self.rect.centery, angle, animation.lightning_animation,'Freez')
+                                    Arrow_place_holder=arrow
+                                    self.last_lightning_attack=pygame.time.get_ticks()
+
+                   
+                        
+                    
+                        
+                    
             else:
                 #attack player 
                 if dist<cons.ATTACK_RANGE and dy<20 and not clipped_line:
@@ -412,8 +451,17 @@ class Character():
                         self.remove_me=True
         elif self.enemy_state=='Stunned':
             self.frames=self.animations['Stunned']
-        elif self.enemy_state=='Attack' or self.enemy_state=='Ranged_Attack':
+        elif self.enemy_state=='Attack':
             self.frames=self.animations['Attack']
+        elif self.enemy_state=='Ranged_Attack':
+            if self.char_type=='Boss':
+                self.frames=self.animations['Ranged_Attack']
+                if ai_dx>0:
+                    self.facing_right=True
+                else:
+                    self.facing_right=False
+            else:
+             self.frames=self.animations['Attack']
         elif self.enemy_state=='Walk':
             self.frames=self.animations['Walk']
             if ai_dx>0:
@@ -447,6 +495,10 @@ class Character():
             scaled_width = int(self.image.get_width() * scale_factor)
             scaled_height = int(self.image.get_height() * scale_factor)
             draw_image=pygame.transform.scale(self.image, (scaled_width, scaled_height))
+            # 红色背景
+            pygame.draw.rect(surface, cons.RED, (self.rect.x, self.rect.top - 60, self.rect.width, 5))
+            # 绿色血量
+            pygame.draw.rect(surface, (0,255,0), (self.rect.x, self.rect.top - 60, self.rect.width * (self.health / self.max_health_boss), 5))
         else:
             draw_image=self.image
         
@@ -471,10 +523,6 @@ class Character():
 
     def update_player_state(self,dx,dy,is_attacking,is_dashing,is_jumping):    
         new_state=self.player_state
-        #physical changes 物理逻辑：跳跃触发（放在前面，不影响动画判断）
-        if is_jumping==True and self.on_ground:
-             self.vel_y=-20
-             self.on_ground=False
 
         if not self.alive:
             if self.player_state!="Dead":
@@ -482,6 +530,20 @@ class Character():
                 self.player_state='Dead'
             return
          #change character animation state
+
+        
+        if self.is_freezed==True:
+            if  pygame.time.get_ticks()-self.last_freeze>self.freeze_timer:
+                self.is_freezed=False
+            else:
+                new_state='Freezed'
+                self.player_state=new_state
+                return
+        
+        if is_jumping==True and self.on_ground:
+             self.vel_y=-20
+             self.on_ground=False
+        
         if is_attacking==True:
             new_state='Attack'
             is_attacking=False
@@ -502,9 +564,13 @@ class Character():
             new_state='Idle'
 
         if new_state!=self.player_state:
-            self.player_state=new_state
-            self.frames=self.animations[new_state]
-            self.frame_index=0
+            if new_state=='Freezed':
+                self.frames=self.animations['Hurt']
+                self.frame_index=0
+            else:
+                self.player_state=new_state
+                self.frames=self.animations[new_state]
+                self.frame_index=0
 
             
         

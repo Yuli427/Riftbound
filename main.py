@@ -7,7 +7,7 @@ import Constants as cons
 import animation
 import UI
 from Character import Character
-from Weapon import Weapon
+from Weapon import Weapon,Tornado,FireHazard
 from Effects import dagameText
 from item import Item
 from World import World
@@ -51,6 +51,7 @@ wants_close_dialog=False
 dialog_message=''
 show_dialog_timer=3000
 
+was_freezed = False
 #initial choices
 player_name = ''
 selected_gender = 'Female'
@@ -80,7 +81,7 @@ wave_cleared = False    # 当前波是否清完了
 
 
 L1_WAVES = [
-    [(animation.Demon1_animations, '1', 3)],                          
+    [(animation.Demon1_animations, '1', 1)],                          
     [(animation.Demon1_animations, '1', 5)],                          
     [(animation.Demon1_animations, '1', 3), (animation.Demon4_animations, '4', 2)],  
 ]
@@ -360,6 +361,8 @@ dagame_Text_group=pygame.sprite.Group()
 item_group=pygame.sprite.Group()
 fire_ball_group=pygame.sprite.Group()
 charge_group=pygame.sprite.Group()
+Tornado_group=pygame.sprite.Group()
+Fire_hazard_group=pygame.sprite.Group()
 #item_group.add(cake)
 item_group.add(money_icon)
 fire_ball_group.add()
@@ -408,6 +411,8 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     dagame_Text_group.empty()
     item_group.empty()
     item_group.add(money_icon)
+    Fire_hazard_group.empty()
+    Tornado_group.empty()
     
 
     # 重新读CSV
@@ -635,6 +640,22 @@ while game_run:
 
     
          if player.alive:
+                
+             #"上一帧是冻结的，但这一帧已经解冻了"的瞬间检测
+             if was_freezed and not player.is_freezed:
+                    key = pygame.key.get_pressed()
+                    moving_left = key[pygame.K_a] #读取实际按键状态
+                    moving_right = key[pygame.K_d]
+                    is_attacking = False #重新设置乘false，重新触发，不要遗留被冻之前的值
+                    is_dashing = False
+                    is_jumping = False
+             was_freezed=player.is_freezed
+             if player.is_freezed:
+                    moving_left = False
+                    moving_right = False
+                    is_attacking = False
+                    is_dashing = False
+                    is_jumping = False
         #handle player movement
              dx=0
              dy=0
@@ -716,7 +737,6 @@ while game_run:
                         current_wave+=1
                     #check if there is another wave
                     if current_wave<len(L1_WAVES):
-                        print(f"spawn_tile数量: {len(spawn_tile)}")
                         wave_active=True
                         #spwan the enemy for this wave
                         for(anim,ctype,count) in L1_WAVES[current_wave]:
@@ -727,6 +747,15 @@ while game_run:
                                 y=sy+world.scroll_y
                                 enemy=Character(x,y,100,anim,ctype)
                                 enemy_list.append(enemy)
+                            for tile in random.sample(spawn_tile, min(3, len(spawn_tile))):
+                                tx = tile[0] + world.scroll_x
+                                ty = tile[1] + world.scroll_y
+                                
+                                tornado = Tornado(tx, ty, animation.wind_ball_animation)
+                                Tornado_group.add(tornado)
+                                
+                                fire = FireHazard(tx + 100, ty, animation.Fire_animation)
+                                Fire_hazard_group.add(fire)
                            
                     else:
                         #if this is the last wave,deactivate the wave
@@ -816,6 +845,9 @@ while game_run:
             
              item_spawn_cooldown-=delta_time
              if item_spawn_cooldown<=0:
+                 sx,sy=random.choice(spawn_tile)
+                 x=sx+world.scroll_x
+                 y=sy+world.scroll_y
                  money=Item(x,y+40,'1',money_img,animation.Money_animation,False)
                  if len(item_group)<=4:
                      item_group.add(money)
@@ -827,12 +859,15 @@ while game_run:
 
              if alliance.alive==False:
                if not potion_spawned:
+                    sx,sy=random.choice(spawn_tile)
+                    x=sx+world.scroll_x
+                    y=sy+world.scroll_y
                     potion=Item(x,y+40,'2',potion_img,None,False)
                     item_group.add(potion)
                     potion_spawned=True
             
                     
-             if is_attacking==True:
+             if is_attacking==True and not player.is_freezed:
                 damage,damage_pos,enemy=player.attack(enemy_list)
                 if damage:
                       damage_text=dagameText(damage_pos.centerx,damage_pos.y,str(damage),cons.RED,font)
@@ -889,11 +924,24 @@ while game_run:
                 all.update(player,enemy_list,world,screen_scroll)
              for all in alliance_group:
                 all.draw(screen)
+             for fire in Fire_hazard_group:
+                 fire.update(screen_scroll,player)
+             for fire in Fire_hazard_group:
+                 fire.draw(screen)
+             for t in Tornado_group:
+                t.update(screen_scroll, player, world)
+             for t in Tornado_group:
+                t.draw(screen)
+            
+
 
     
          player.update()
          player.draw(screen)
          player.update_player_state(dx,dy,is_attacking,is_dashing,is_jumping)
+
+
+
     
     #draw player health
          UI.draw_health_bar(screen,player,screen_scroll)
@@ -966,17 +1014,14 @@ while game_run:
         if event.type==pygame.QUIT:
             game_run=False
         #take keyboard presses
+        
         if event.type ==pygame.KEYDOWN:
             if event.key==pygame.K_a:
-                moving_left=True
+                        moving_left=True
             if event.key==pygame.K_d:
-                moving_right=True
-            if event.key==pygame.K_w:
-                moving_up=True
-            if event.key==pygame.K_s:
-                moving_down=True
+                        moving_right=True
             if event.key==pygame.K_SPACE:
-                 is_jumping=True
+                        is_jumping=True
             if event.key==pygame.K_ESCAPE:
                  if is_shopmenu:
                      not_purchased=True
