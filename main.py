@@ -117,9 +117,9 @@ is_dashing=False
 is_changing_character=False
 is_jumping=False
 current_level='1'
-is_level1=True
+is_level1=False
 is_level2=False
-is_level3=False
+is_level3=True
 
 #load button image
 start_img=pygame.image.load("assets/buttons/start_btn.png").convert()
@@ -328,7 +328,22 @@ for tile in world.obstacle_tiles:
     if left1 or right1:
         spawn_tile.append((tile.centerx, tile.top - cons.ENEMY_HEIGHT))
 
+Tornado_spawn_tile=[]
+tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
+for tile in world.obstacle_tiles:
+    cx = tile.centerx
+    top = tile.top
+    left1  = (cx - cons.TILE_SIZE, top) in tile_set
+    left2  = (cx - cons.TILE_SIZE*2, top) in tile_set
+    left3  = (cx - cons.TILE_SIZE*3, top) in tile_set
+    right1 = (cx + cons.TILE_SIZE, top) in tile_set
+    right2 = (cx + cons.TILE_SIZE*2, top) in tile_set
+    right3 = (cx + cons.TILE_SIZE*3, top) in tile_set
 
+    right_ok=right1 and right2 and right3
+    left_ok=left1 and left2 and left3
+    if right_ok or left_ok:
+        Tornado_spawn_tile.append((tile.centerx, tile.top))
 
 #create enemy
 #enemy=Character(200,700,100,animation.Demon1_animations,'1')
@@ -470,6 +485,8 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     
     world.scroll_x = 0
     world.scroll_y = 0
+
+    # enemy spwan
     global spawn_tile
     spawn_tile = []
     tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
@@ -480,6 +497,25 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
         right1 = (cx + cons.TILE_SIZE, top) in tile_set
         if left1 or right1:
             spawn_tile.append((tile.centerx, tile.top - cons.ENEMY_HEIGHT))
+    
+    #fire and tornado spawn
+    global Tornado_spawn_tile
+    Tornado_spawn_tile=[]
+    tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
+    for tile in world.obstacle_tiles:
+        cx = tile.centerx
+        top = tile.top
+        left1  = (cx - cons.TILE_SIZE, top) in tile_set
+        left2  = (cx - cons.TILE_SIZE*2, top) in tile_set
+        left3  = (cx - cons.TILE_SIZE*3, top) in tile_set
+        right1 = (cx + cons.TILE_SIZE, top) in tile_set
+        right2 = (cx + cons.TILE_SIZE*2, top) in tile_set
+        right3 = (cx + cons.TILE_SIZE*3, top) in tile_set
+
+        right_ok=right1 and right2 and right3
+        left_ok=left1 and left2 and left3
+        if right_ok or left_ok:
+            Tornado_spawn_tile.append((tile.centerx, tile.top))
 
     # 重置玩家
     player.rect.center = (200, 700)
@@ -747,14 +783,14 @@ while game_run:
                                 y=sy+world.scroll_y
                                 enemy=Character(x,y,100,anim,ctype)
                                 enemy_list.append(enemy)
-                            for tile in random.sample(spawn_tile, min(3, len(spawn_tile))):
-                                tx = tile[0] + world.scroll_x
-                                ty = tile[1] + world.scroll_y
+
                                 
-                                tornado = Tornado(tx, ty, animation.wind_ball_animation)
-                                Tornado_group.add(tornado)
-                                
-                                fire = FireHazard(tx + 100, ty, animation.Fire_animation)
+                                #tornado = Tornado(300, 600, animation.wind_ball_animation)
+                                #Tornado_group.add(tornado)
+                                sx1,sy1=random.choice(Tornado_spawn_tile)
+                                x1=sx1+world.scroll_x
+                                y1=sy1+world.scroll_y
+                                fire = FireHazard(x1,y1, animation.Fire_animation)
                                 Fire_hazard_group.add(fire)
                            
                     else:
@@ -802,6 +838,7 @@ while game_run:
                                 
                         else:
                            wave_active=False
+                           Boss=Character(x,y,500,animation.Boss_animations,'Boss')
 
 
                 # if enemy1_cooldown<=0 and len(enemy_list)<3 :

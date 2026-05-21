@@ -364,10 +364,6 @@ class Character():
                                     Arrow_place_holder=arrow
                                     self.last_lightning_attack=pygame.time.get_ticks()
 
-                   
-                        
-                    
-                        
                     
             else:
                 #attack player 

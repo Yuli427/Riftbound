@@ -252,15 +252,43 @@ class Tornado(pygame.sprite.Sprite):
             self.animations[key] = Helper.load_image(self, animation[key][0], animation[key][1])
         self.frames = self.animations['Idle']
         self.image = self.frames[self.frame_index]
-        
-        self.rect = pygame.Rect(0, 0, 40, 40)
-        self.rect.midbottom = (x, y)
-        
-        self.speed = 2
+    
+        #self.rect=pygame.Rect(x,y,50,50)
+        self.rect=self.image.get_rect()
+        #self.rect.midbottom = (x, y)
+        self.rect.center=(x,y)
+        self.rect=self.rect.inflate(-10,-20)
+        self.speed = 3
+        self.vel_y=0
+        self.on_ground=False
         self.facing_right = True
         self.spawn_time = pygame.time.get_ticks()
-        self.lifetime = 6000
+        self.lifetime = 20000
         self.attack_cooldown = 0
+        self.dy=0
+        self.dx=0
+    
+    def move(self,dx,dy,world):
+        
+         self.vel_y+=1
+         dy=self.vel_y
+
+         self.rect.x+=dx
+         self.rect.y+=dy
+
+         self.on_ground=False
+         for tile in world.obstacle_tiles:
+                if tile.colliderect(self.rect):
+                    if dy>0:
+                        if(self.rect.bottom-dy)<=tile.top:
+                            self.rect.bottom=tile.top
+                            self.vel_y=0
+                            self.on_ground=True
+
+
+    
+
+
 
     def update(self, screen_scroll, player, world):
         if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
@@ -271,17 +299,20 @@ class Tornado(pygame.sprite.Sprite):
         self.rect.x += screen_scroll[0]
         self.rect.y += screen_scroll[1]
 
-        # 左右移动
-        if self.facing_right:
-            self.rect.x += self.speed
-        else:
-            self.rect.x -= self.speed
 
-        # 碰墙反转
-        for tile in world.obstacle_tiles:
-            if tile.colliderect(self.rect):
-                self.facing_right = not self.facing_right
-                break
+        
+        hit_wall, reached_edge=Helper.ground_ahead(self,world)
+        if hit_wall or reached_edge:
+              self.facing_right = not self.facing_right
+        
+                # 左右移动
+        if self.facing_right:
+            self.dx= self.speed
+        else:
+            self.dx= -self.speed
+        
+        self.move(self.dx,self.dy,world)
+                
 
         # 伤害玩家
         if self.attack_cooldown > 0:
@@ -316,12 +347,14 @@ class FireHazard(pygame.sprite.Sprite):
         self.frames = self.animations['Idle']
         self.image = self.frames[self.frame_index]
 
-        self.rect = pygame.Rect(0, 0, 40, 40)
+        self.rect=self.image.get_rect()
+        #self.rect.center=(x,y+cons.ENEMY_HEIGHT)
         self.rect.midbottom = (x, y)
 
         self.spawn_time = pygame.time.get_ticks()
-        self.lifetime = 10000
+        self.lifetime = 20000
         self.attack_cooldown = 0
+
 
     def update(self, screen_scroll, player):
         if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
