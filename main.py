@@ -35,6 +35,7 @@ opening_intro=False
 is_shopmenu=False
 show_goal_dialog_l1=False
 show_goal_dialog_l2=False
+show_goal_dialog_l3=False
 is_purchased=False
 not_purchased=False
 
@@ -76,7 +77,11 @@ enemy4_counter=0
 current_wave = 0        # 当前是第几波（0表示还没开始）
 wave_active = False     # 当前波是否正在进行
 wave_cleared = False    # 当前波是否清完了
+is_boss_spawned=False
+phase2_triggered=False
 
+turnado_spawn_timer=0
+fire_spawn_timer=0
 
 
 
@@ -100,13 +105,10 @@ L2_WAVES = [
      (animation.Demon2_animations, '2', 2)],          
 ]
 L3_WAVES = [
-    [(animation.Demon1_animations, '1', 3),
-     (animation.Demon2_animations, '2', 2),
-     (animation.Demon5_animations, '5', 1)],    
-    
-    [(animation.Demon3_animations, '3', 2),
-     (animation.Demon4_animations, '4', 2)],   
+    [(animation.Demon1_animations, '1', 1),],    
 ]
+L3_BOSS=[[(animation.Boss_animations,'Boss',1),],]
+   
 #define player movement variable
 moving_left=False
 moving_up=False
@@ -605,10 +607,14 @@ while game_run:
                         
 
     elif is_dialog_active:
-       if show_goal_dialog_l1 and current_level=='1':
+       if is_boss_spawned==True and current_level=='3':
+           UI.draw_dialog(screen, font, alliance, 'The final BOSS has arrived!')
+       elif show_goal_dialog_l1 and current_level=='1':
            UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $500.')
        elif show_goal_dialog_l2 and current_level=='2':
            UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $1000.')
+       elif show_goal_dialog_l3 and current_level=='3':
+           UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $2000.')
        else:
            UI.draw_dialog(screen,font,alliance,dialog_message)
        if wants_close_dialog:
@@ -643,18 +649,20 @@ while game_run:
       else:
           
          
-              
+         
 
 
          show_dialog_timer-=delta_time
          if show_dialog_timer<0:
-            if not show_goal_dialog_l1 and not start_intro :
+            if not show_goal_dialog_l1 and not start_intro and is_level1 :
               is_dialog_active=True
               show_goal_dialog_l1=True
             elif not show_goal_dialog_l2 and not opening_intro and is_level2:
               is_dialog_active=True
               show_goal_dialog_l2=True
-            
+            elif not show_goal_dialog_l3 and is_level3:
+              is_dialog_active=True
+              show_goal_dialog_l3=True
 
         #  surviving_time+=delta_time
         #  total_sec=surviving_time//1000
@@ -755,16 +763,6 @@ while game_run:
         
              
 
-             enemy1_cooldown-=delta_time
-             if enemy2_cooldown > 0:
-                 enemy2_cooldown -= delta_time
-             if enemy3_cooldown > 0:
-                 enemy3_cooldown -= delta_time
-             if enemy4_cooldown>0:
-                 enemy4_cooldown-=delta_time
-             if enemy5_cooldown>0:
-                 enemy5_cooldown-=delta_time
-
             
              if is_level1:
                 #start it if wave is not active, it is active but player clean all the enemies
@@ -785,13 +783,7 @@ while game_run:
                                 enemy_list.append(enemy)
 
                                 
-                                #tornado = Tornado(300, 600, animation.wind_ball_animation)
-                                #Tornado_group.add(tornado)
-                                sx1,sy1=random.choice(Tornado_spawn_tile)
-                                x1=sx1+world.scroll_x
-                                y1=sy1+world.scroll_y
-                                fire = FireHazard(x1,y1, animation.Fire_animation)
-                                Fire_hazard_group.add(fire)
+
                            
                     else:
                         #if this is the last wave,deactivate the wave
@@ -800,6 +792,7 @@ while game_run:
                             level_complete_shop=True
                             is_shopmenu=True
              if is_level2:
+                    current_level='2'
                     #start it if wave is not active, it is active but player clean all the enemies
                     if not wave_active or (wave_active and len(enemy_list)==0):
                         if wave_active:
@@ -821,7 +814,7 @@ while game_run:
                                 level_complete_shop=True
                                 is_shopmenu=True
              if is_level3:
-                    
+                    current_level='3'
                     if not wave_active or (wave_active and len(enemy_list)==0):
                         if wave_active:
                             current_wave+=1
@@ -837,8 +830,46 @@ while game_run:
                                     enemy_list.append(enemy)
                                 
                         else:
-                           wave_active=False
-                           Boss=Character(x,y,500,animation.Boss_animations,'Boss')
+                            if not is_boss_spawned:
+                                is_boss_spawned=True
+                                is_dialog_active=True
+                                wave_active=True
+                                for(anim,ctype,count) in L3_BOSS[0]:
+                                    for _ in range(count): 
+                                        sx,sy=random.choice(spawn_tile)
+                                        x=sx+world.scroll_x
+                                        y=sy+world.scroll_y
+                                        boss=Character(x,y,0,anim,ctype)
+                                        enemy_list.append(boss)
+                                
+                               
+                        
+                        if is_boss_spawned and len(enemy_list) > 0:
+                                        boss = enemy_list[0]  
+                                    #if boss.health <= 50 and not phase2_triggered:
+                                        phase2_triggered = True
+                                        fire_spawn_timer-=delta_time
+                                        turnado_spawn_timer-=delta_time
+                                        
+                                        if turnado_spawn_timer<=0:
+                                                tornado = Tornado(300, player.rect.centery, animation.wind_ball_animation)
+                                                Tornado_group.add(tornado)
+                                                turnado_spawn_timer=5000
+                                        if fire_spawn_timer<=0:
+                                                sx1, sy1 = random.choice(Tornado_spawn_tile)
+                                                x1 = sx1 + world.scroll_x
+                                                y1 = sy1 + world.scroll_y
+                                                fire = FireHazard(x1, y1, animation.Fire_animation)
+                                                Fire_hazard_group.add(fire)
+                                                fire_spawn_timer=6000
+                        
+                                    
+                                        
+                               
+
+
+                               
+                           
 
 
                 # if enemy1_cooldown<=0 and len(enemy_list)<3 :
