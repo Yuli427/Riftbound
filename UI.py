@@ -94,24 +94,35 @@ def draw_square(screen):
     pygame.draw.rect(hud_surface,(255,255,255,150),(0,0,cons.SCREEN_WIDTH,hud_height))
     screen.blit(hud_surface,(0,0))
 
-def draw_shop_menu(screen, font, player_money):
+def draw_shop_menu(screen, font, player_money,current_level):
       overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT))
       overlay.fill((0,0,0))
       overlay.set_alpha(150)
       screen.blit(overlay, (0,0))
+      if current_level=='1':
+        lines = [
+            "Guess what? You can buy friends in this game,",
+            "even though you might not be able to in real life...",
+            f"Your Money: ${player_money}",
+            "",
+            f"Press [1] to buy Fujiwara Rin    {cons.Fujiwara_Rin}",
+            f"Press [2] to buy Vesper Blanche  {cons.Vesper}",
+            f"Press [3] to buy Himura Fuma     {cons.Himura}",
+            f"Press [4] to buy Ares            {cons.Ares}",
+            f"Press [ESC] to leave"
+        ]
+      else:
+           lines = [
+            "if you wish to replace with your alliance with a new one",
+            "it is time to do so...",
+            f"Your Money: ${player_money}",
+            "",
+            f"Press [1] to buy Fujiwara Rin    {cons.Fujiwara_Rin}",
+            f"Press [2] to buy Vesper Blanche  {cons.Vesper}",
+            f"Press [3] to buy Himura Fuma     {cons.Himura}",
+            f"Press [4] to buy Ares            {cons.Ares}",
+            f"Press [ESC] to leave"]
 
-      lines = [
-        "Guess what? You can buy friends in this game,",
-        "even though you might not be able to in real life...",
-        f"Your Money: ${player_money}",
-        "",
-        "Press [1] to buy Fujiwara Rin    $2000",
-        "Press [2] to buy Vesper Blanche  $2500",
-        "Press [3] to buy Himura Fuma     $2500",
-        "Press [4] to buy Ares            $2500",
-        "Press [ESC] to leave"
-       ]
-      
       start_x = 30
       start_y = 120
       line_height = 35
@@ -121,14 +132,13 @@ def draw_shop_menu(screen, font, player_money):
        line_text=Text(start_x,start_y+(i*line_height),line_content,font,color)
        line_text.draw_text(screen)
 
-def draw_loading(screen,font):
+def draw_text_screen(screen,font,message):
       overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT))
       overlay.fill((0,0,0))
       overlay.set_alpha(150)
       screen.blit(overlay, (0,0))
 
-      lines = [
-        "Loading..."]
+      lines = [message]
       
       start_x = 30
       start_y = cons.SCREEN_HEIGHT//2
@@ -164,10 +174,10 @@ def draw_dialog(screen, font, alliance,sentence):
       overlay.fill((0,0,0))
       overlay.set_alpha(60)
       # 画在屏幕底部
-      screen.blit(overlay, (0, cons.SCREEN_HEIGHT - cons.SCREEN_HEIGHT//6))
+      screen.blit(overlay, (0, cons.SCREEN_HEIGHT - cons.SCREEN_HEIGHT//4))
     
      
-      max_width = cons.SCREEN_WIDTH - 60  # 左右各留30像素边距
+      max_width = cons.SCREEN_WIDTH - 10  # 左右各留30像素边距
       words = sentence.split(' ')         # 按空格拆分单词
       lines = []
       current_line = ""
@@ -182,8 +192,8 @@ def draw_dialog(screen, font, alliance,sentence):
                 current_line = word + " "
       lines.append(current_line)          # 加入最后一行
 
-      start_x = 30
-      start_y = (cons.SCREEN_HEIGHT - cons.SCREEN_HEIGHT//6)+30
+      start_x = 20
+      start_y = (cons.SCREEN_HEIGHT - cons.SCREEN_HEIGHT//5)
       line_height = 35
       
       for i,line_content in enumerate(lines):
@@ -213,7 +223,7 @@ def draw_choose_menu(screen, font, player_name, selected_gender, game_name,input
     name_text.draw_text(screen)
 
     # gender text
-    gender_label = Text(30, 300, 'Choose gender (pess M or F):', font, cons.PURPLE)
+    gender_label = Text(30, 300, 'press <- and -> to choose', font, cons.PURPLE)
     gender_label.draw_text(screen)
 
     # 性别按钮

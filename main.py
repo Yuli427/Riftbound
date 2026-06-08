@@ -28,6 +28,7 @@ clock= pygame.time.Clock()
 #define game variables
 start_game=False
 pause_game=False
+game_over=False
 tileset_path = 'assets/object/obj.tsj'
 tileset_dir = os.path.dirname(tileset_path)
 start_intro=False
@@ -43,6 +44,7 @@ level_complete_shop = False
 pending_level_load = False
 
 opening_intro_timer=cons.INTRO_TIMER
+game_over_timer=cons.GAME_OVER_TIMER
 victory_timer=cons.VICTORY_TIMER
 
 is_alived_agian=False
@@ -79,33 +81,41 @@ wave_active = False     # 当前波是否正在进行
 wave_cleared = False    # 当前波是否清完了
 is_boss_spawned=False
 phase2_triggered=False
-
 turnado_spawn_timer=0
 fire_spawn_timer=0
 
 
 
+
+
 L1_WAVES = [
-    [(animation.Demon1_animations, '1', 1)],                          
-    [(animation.Demon1_animations, '1', 5)],                          
-    [(animation.Demon1_animations, '1', 3), (animation.Demon4_animations, '4', 2)],  
+    [(animation.Demon1_animations, '1', 2)],
+    [(animation.Demon1_animations, '1', 4)],
+    [(animation.Demon1_animations, '1', 3),
+     (animation.Demon4_animations, '4', 2)],
 ]
+
 L2_WAVES = [
-    [(animation.Demon1_animations, '1', 3), 
-     (animation.Demon2_animations, '2', 1)],          
-    
-    [(animation.Demon1_animations, '1', 4), 
-     (animation.Demon2_animations, '2', 2)],          
-    
-    [(animation.Demon1_animations, '1', 3), 
-     (animation.Demon4_animations, '4', 2),
-     (animation.Demon2_animations, '2', 1)],          
-    
-    [(animation.Demon3_animations, '3', 2),
-     (animation.Demon2_animations, '2', 2)],          
+    [(animation.Demon1_animations, '1', 3),
+     (animation.Demon2_animations, '2', 1)],
+    [(animation.Demon1_animations, '1', 3),
+     (animation.Demon2_animations, '2', 2),
+     (animation.Demon3_animations, '3', 1)],
+    [(animation.Demon2_animations, '2', 2),
+     (animation.Demon3_animations, '3', 3)],
+    [(animation.Demon1_animations, '1', 2),
+     (animation.Demon2_animations, '2', 2),
+     (animation.Demon3_animations, '3', 2)],
 ]
+
 L3_WAVES = [
-    [(animation.Demon1_animations, '1', 1),],    
+    [(animation.Demon1_animations, '1', 4),
+     (animation.Demon5_animations, '5', 2)],
+    [(animation.Demon4_animations, '4', 3),
+     (animation.Demon5_animations, '5', 3)],
+    [(animation.Demon1_animations, '1', 3),
+     (animation.Demon4_animations, '4', 2),
+     (animation.Demon5_animations, '5', 4)],
 ]
 L3_BOSS=[[(animation.Boss_animations,'Boss',1),],]
    
@@ -120,8 +130,8 @@ is_changing_character=False
 is_jumping=False
 current_level='1'
 is_level1=False
-is_level2=False
-is_level3=True
+is_level2=True
+is_level3=False
 
 #load button image
 start_img=pygame.image.load("assets/buttons/start_btn.png").convert()
@@ -579,21 +589,25 @@ while game_run:
             victory_timer-=delta_time
         if victory_timer<=0:
                 screen.fill((0,0,0))
-                UI.draw_shop_menu(screen, smaller_font, player.score)
+                UI.draw_shop_menu(screen, smaller_font, player.score,current_level)
                 if is_purchased==True and alliance.name== 'Rin' :
                      player.score-=cons.Fujiwara_Rin
+                     alliance_group.empty()
                      is_shopmenu=False
                      alliance_group.add(Rin)
                 elif is_purchased==True and alliance.name== 'Vesper' :
                      player.score-=cons.Vesper
+                     alliance_group.empty()
                      is_shopmenu=False
                      alliance_group.add(Vesper)
                 elif is_purchased==True and alliance.name== 'Fuma' :
                      player.score-=cons.Himura
+                     alliance_group.empty()
                      is_shopmenu=False
                      alliance_group.add(Fuma)
                 elif is_purchased==True and alliance.name=='Ares' :
                      player.score-=cons.Ares
+                     alliance_group.empty()
                      is_shopmenu=False
                      alliance_group.add(Ares)
                         #check if the level is complete
@@ -610,11 +624,11 @@ while game_run:
        if is_boss_spawned==True and current_level=='3':
            UI.draw_dialog(screen, font, alliance, 'The final BOSS has arrived!')
        elif show_goal_dialog_l1 and current_level=='1':
-           UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $500.')
+           UI.draw_dialog(screen, font, alliance, f'Goal: Eliminate all enemies and obtain {cons.L1_GOAL}. Remember you need to find them if you can\'t see them...')
        elif show_goal_dialog_l2 and current_level=='2':
-           UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $1000.')
+           UI.draw_dialog(screen, font, alliance, f'Goal: Eliminate all enemies and obtain {cons.L2_GOAL}.')
        elif show_goal_dialog_l3 and current_level=='3':
-           UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies and obtain $2000.')
+           UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies.')
        else:
            UI.draw_dialog(screen,font,alliance,dialog_message)
        if wants_close_dialog:
@@ -625,7 +639,7 @@ while game_run:
          #if start intro=true fade screen
                 if opening_intro_timer>0:
                   opening_intro_timer-=delta_time
-                  UI.draw_loading(screen,font)
+                  UI.draw_text_screen(screen,font,'Loading...')
                   if opening_intro_timer<=0:
                         opening_intro=False
                         opening_intro_timer=cons.INTRO_TIMER
@@ -638,7 +652,42 @@ while game_run:
                             is_level2=False
                             is_level3=True
                             current_level='3'
-                            reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)               
+                            reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list) 
+    elif game_over==True:
+        if game_over_timer>0:
+            game_over_timer-=delta_time
+            UI.draw_text_screen(screen,font,'You won! good job.')
+        else:
+            screen.fill((0,0,0))
+            if restart_button.draw(screen):
+                game_over = False
+                game_over_timer = cons.GAME_OVER_TIMER
+                opening_intro = False
+                is_level1 = True
+                is_level2 = False
+                is_level3 = False
+                current_level = '1'
+                current_wave = 0
+                wave_active = False
+                is_boss_spawned = False
+                phase2_triggered = False
+                show_goal_dialog_l1 = False
+                show_goal_dialog_l2 = False
+                show_goal_dialog_l3 = False
+                show_dialog_timer = 3000
+                level_complete_shop = False
+                enemy_list.clear()
+                alliance_group.clear()
+                reset_level(world, player, enemy_list, fire_ball_group, charge_group,
+                            dagame_Text_group, item_group, world_data, object_data,
+                            platform_data, tile_list, obj_tile_list)
+            # elif exit_button.draw(screen):
+            #     game_run=False
+
+                
+
+   
+                
     else:
       if pause_game==True:
                 screen.fill((0,0,0))
@@ -782,13 +831,11 @@ while game_run:
                                 enemy=Character(x,y,100,anim,ctype)
                                 enemy_list.append(enemy)
 
-                                
-
                            
                     else:
                         #if this is the last wave,deactivate the wave
                         wave_active=False
-                        if not level_complete_shop and player.score>=100:
+                        if not level_complete_shop and player.score>cons.L1_GOAL:
                             level_complete_shop=True
                             is_shopmenu=True
              if is_level2:
@@ -810,7 +857,7 @@ while game_run:
                                
                         else:
                             wave_active=False
-                            if not level_complete_shop and player.score>=100:
+                            if not level_complete_shop and player.score>cons.L2_GOAL:
                                 level_complete_shop=True
                                 is_shopmenu=True
              if is_level3:
@@ -839,29 +886,35 @@ while game_run:
                                         sx,sy=random.choice(spawn_tile)
                                         x=sx+world.scroll_x
                                         y=sy+world.scroll_y
-                                        boss=Character(x,y,0,anim,ctype)
+                                        boss=Character(x,y,100,anim,ctype)
                                         enemy_list.append(boss)
                                 
                                
                         
-                        if is_boss_spawned and len(enemy_list) > 0:
+                    if is_boss_spawned and len(enemy_list)>0:
                                         boss = enemy_list[0]  
                                     #if boss.health <= 50 and not phase2_triggered:
+                                        
                                         phase2_triggered = True
                                         fire_spawn_timer-=delta_time
                                         turnado_spawn_timer-=delta_time
-                                        
-                                        if turnado_spawn_timer<=0:
-                                                tornado = Tornado(300, player.rect.centery, animation.wind_ball_animation)
-                                                Tornado_group.add(tornado)
-                                                turnado_spawn_timer=5000
-                                        if fire_spawn_timer<=0:
-                                                sx1, sy1 = random.choice(Tornado_spawn_tile)
-                                                x1 = sx1 + world.scroll_x
-                                                y1 = sy1 + world.scroll_y
-                                                fire = FireHazard(x1, y1, animation.Fire_animation)
-                                                Fire_hazard_group.add(fire)
-                                                fire_spawn_timer=6000
+                                        if  boss.health<=50:
+                                            if turnado_spawn_timer<=0:
+                                                    tornado_spawn_x=random.randint(200,800)
+                                                    tornado = Tornado(tornado_spawn_x, 350, animation.wind_ball_animation)
+                                                    Tornado_group.add(tornado)
+                                                    turnado_spawn_timer=2000
+                                            if fire_spawn_timer<=0:
+                                                    sx1, sy1 = random.choice(Tornado_spawn_tile)
+                                                    x1 = sx1 + world.scroll_x
+                                                    y1 = sy1 + world.scroll_y
+                                                    fire = FireHazard(x1, y1, animation.Fire_animation)
+                                                    Fire_hazard_group.add(fire)
+                                                    fire_spawn_timer=800
+                                            if boss.alive==False:
+                                                game_over=True
+                                               
+                                                
                         
                                     
                                         
@@ -1054,7 +1107,10 @@ while game_run:
           vertical_text.draw_vertical_text(screen)
           vertical_text.update(screen_scroll)
     #Level_text.draw_text(screen)
-         score_text=UI.Text(50,15,f'{player.score}',font,cons.PURPLE)
+         if current_level=='1':
+          score_text=UI.Text(50,15,f'{player.score}/{cons.L1_GOAL}',font,cons.PURPLE)
+         elif current_level=='2':
+          score_text=UI.Text(50,15,f'{player.score}/{cons.L2_GOAL}',font,cons.PURPLE)
          score_text.draw_text(screen)
          score_text.update(screen_scroll)
          name_text.update(screen_scroll)

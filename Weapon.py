@@ -280,7 +280,7 @@ class Tornado(pygame.sprite.Sprite):
          for tile in world.obstacle_tiles:
                 if tile.colliderect(self.rect):
                     if dy>0:
-                        if(self.rect.bottom-dy)<=tile.top:
+                         if(self.rect.bottom-dy)<=tile.top:
                             self.rect.bottom=tile.top
                             self.vel_y=0
                             self.on_ground=True
