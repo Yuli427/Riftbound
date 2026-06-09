@@ -21,23 +21,18 @@ class Alliance(pygame.sprite.Sprite):
 
      self.name=name
      self.state='Idle'
-     self.health=100
      self.alive=True
      self.target=None
      self.hit=False
      self.last_hit=pygame.time.get_ticks()
      self.stunned=False
      self.stun_until=0
-
      self.followdist=100
      self.detect_range=1000
-     self.attack_range=50
      self.attack_cooldown=0
      self.dist_to_tile=150
      self.vel_y=0
-
-     self.speed=cons.ALLIANCE_SPPED
-     self.fast_speed=cons.ALLIANCE_FAST_SPPED
+         
      self.facing_right=False
      self.on_ground=False
      self.is_attacking=False
@@ -49,10 +44,35 @@ class Alliance(pygame.sprite.Sprite):
      self.dx=0
 
 
-     
-   
+     if name == 'Rin':
+        self.health = 100
+        self.speed = 3
+        self.fast_speed = 5
+        self.attack_range = 50
+        self.damage = 40
+        self.detect_range = 800
+     elif name == 'Vesper':
+        self.health = 100
+        self.speed = 2
+        self.fast_speed = 4
+        self.attack_range = 150
+        self.damage = 30
+        self.detect_range = 1000
+     elif name == 'Fuma':
+        self.health = 100
+        self.speed = 6
+        self.fast_speed = 9
+        self.attack_range = 50
+        self.damage = 60
+        self.detect_range = 900
+     elif name == 'Ares':
+        self.health = 200
+        self.speed = 2
+        self.fast_speed = 4
+        self.attack_range = 60
+        self.damage = 80
+        self.detect_range = 1000
 
-    
 
 #dx 指的是在 水平方向（X 轴）上的位移增量。dy 指的是在 垂直方向（Y 轴）上的位移增量。
     def update(self,player,enemy_list,world,screen_scroll):
@@ -97,14 +117,15 @@ class Alliance(pygame.sprite.Sprite):
        closest=None
        min_dist=self.detect_range
        for enemy in enemy_list:
-          if enemy.alive==True and enemy.health>0:
-             dx = abs(self.rect.centerx - enemy.rect.centerx)
-             dy = abs(self.rect.centery - enemy.rect.centery)
-             weighted_dist = math.sqrt(dx**2 + (dy * 2.5)**2) 
-             if weighted_dist<min_dist:
-                #确认谁才是离你最近的敌人
-                min_dist=weighted_dist
-                closest=enemy
+          if enemy.char_type not in['3','5']:
+            if enemy.alive==True and enemy.health>0:
+                dx = abs(self.rect.centerx - enemy.rect.centerx)
+                dy = abs(self.rect.centery - enemy.rect.centery)
+                weighted_dist = math.sqrt(dx**2 + (dy * 2.5)**2) 
+                if weighted_dist<min_dist:
+                    #确认谁才是离你最近的敌人
+                    min_dist=weighted_dist
+                    closest=enemy
        return closest
     
     def follow_logic(self,player,world):
@@ -193,8 +214,7 @@ class Alliance(pygame.sprite.Sprite):
             self.dy=0
             self.dx=0
             if self.attack_cooldown<=0:
-                damage=40
-                self.target.health-=damage
+                self.target.health-=self.damage
                 self.target.stunned=True
                 self.target.stun_until=cons.STUN_TIME
                 if self.target.health<=0:

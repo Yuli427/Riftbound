@@ -90,32 +90,30 @@ fire_spawn_timer=0
 
 L1_WAVES = [
     [(animation.Demon1_animations, '1', 2)],
-    [(animation.Demon1_animations, '1', 4)],
-    [(animation.Demon1_animations, '1', 3),
+    [(animation.Demon1_animations, '1', 2),
+     (animation.Demon4_animations, '4', 1)],
+    [(animation.Demon1_animations, '1', 2),
      (animation.Demon4_animations, '4', 2)],
 ]
 
 L2_WAVES = [
-    [(animation.Demon1_animations, '1', 3),
+    [(animation.Demon1_animations, '1', 2),
      (animation.Demon2_animations, '2', 1)],
-    [(animation.Demon1_animations, '1', 3),
-     (animation.Demon2_animations, '2', 2),
+    [(animation.Demon1_animations, '1', 2),
+     (animation.Demon2_animations, '2', 1),
      (animation.Demon3_animations, '3', 1)],
     [(animation.Demon2_animations, '2', 2),
-     (animation.Demon3_animations, '3', 3)],
-    [(animation.Demon1_animations, '1', 2),
-     (animation.Demon2_animations, '2', 2),
      (animation.Demon3_animations, '3', 2)],
 ]
 
 L3_WAVES = [
-    [(animation.Demon1_animations, '1', 4),
+    [(animation.Demon1_animations, '1', 2),
+     (animation.Demon5_animations, '5', 1)],
+    [(animation.Demon4_animations, '4', 2),
      (animation.Demon5_animations, '5', 2)],
-    [(animation.Demon4_animations, '4', 3),
-     (animation.Demon5_animations, '5', 3)],
-    [(animation.Demon1_animations, '1', 3),
-     (animation.Demon4_animations, '4', 2),
-     (animation.Demon5_animations, '5', 4)],
+    [(animation.Demon1_animations, '1', 2),
+     (animation.Demon4_animations, '4', 1),
+     (animation.Demon5_animations, '5', 2)],
 ]
 L3_BOSS=[[(animation.Boss_animations,'Boss',1),],]
    
@@ -129,8 +127,8 @@ is_dashing=False
 is_changing_character=False
 is_jumping=False
 current_level='1'
-is_level1=False
-is_level2=True
+is_level1=True
+is_level2=False
 is_level3=False
 
 #load button image

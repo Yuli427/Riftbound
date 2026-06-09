@@ -384,7 +384,7 @@ class Character():
                       alliance.health-=0
                       alliance.last_hit=pygame.time.get_ticks()
 
-                elif self.char_type=='2' and dist<500:
+                elif self.char_type=='2' and dist<300:
                   self.enemy_state='Ranged_Attack'
                   if pygame.time.get_ticks()-self.last_fireball_attack>=self.fireball_cooldown:
                          fireball=Fire_ball(fireball_image,self.rect.centerx,self.rect.centery,player.rect.centerx,player.rect.centery)
@@ -539,6 +539,7 @@ class Character():
         if is_jumping==True and self.on_ground:
              self.vel_y=-20
              self.on_ground=False
+        is_jumping=False
         
         if is_attacking==True:
             new_state='Attack'
