@@ -179,12 +179,14 @@ class Alliance(pygame.sprite.Sprite):
 
         abs_dx = abs(dx_to_target)
         abs_dy = abs(dy_to_target)
+        
+        if self.name=='Vesper' or self.name=='Fuma':
+            if abs_dy>=60:
+                self.rect.centerx = self.target.rect.centerx-10
+                self.rect.bottom = self.target.rect.bottom
+                self.vel_y = 0
+                return
 
-        if abs_dy>=60:
-            self.rect.centerx = self.target.rect.centerx-10
-            self.rect.bottom = self.target.rect.bottom
-            self.vel_y = 0
-            return
         
         
         # in_attack_range = abs_dx < self.attack_range and abs_dy < 60

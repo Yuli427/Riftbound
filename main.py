@@ -89,11 +89,11 @@ fire_spawn_timer=0
 
 
 L1_WAVES = [
-    [(animation.Demon1_animations, '1', 2)],
-    [(animation.Demon1_animations, '1', 2),
-     (animation.Demon4_animations, '4', 1)],
-    [(animation.Demon1_animations, '1', 2),
-     (animation.Demon4_animations, '4', 2)],
+    [(animation.Demon1_animations, '1', 1)],
+    # [(animation.Demon1_animations, '1', 2),
+    #  (animation.Demon4_animations, '4', 1)],
+    # [(animation.Demon1_animations, '1', 2),
+    #  (animation.Demon4_animations, '4', 2)],
 ]
 
 L2_WAVES = [
@@ -107,13 +107,13 @@ L2_WAVES = [
 ]
 
 L3_WAVES = [
-    [(animation.Demon1_animations, '1', 2),
-     (animation.Demon5_animations, '5', 1)],
-    [(animation.Demon4_animations, '4', 2),
-     (animation.Demon5_animations, '5', 2)],
-    [(animation.Demon1_animations, '1', 2),
-     (animation.Demon4_animations, '4', 1),
-     (animation.Demon5_animations, '5', 2)],
+    # [(animation.Demon1_animations, '1', 2),
+    #  (animation.Demon5_animations, '5', 1)],
+    # [(animation.Demon4_animations, '4', 2),
+    #  (animation.Demon5_animations, '5', 2)],
+    # [(animation.Demon1_animations, '1', 2),
+    #  (animation.Demon4_animations, '4', 1),
+    #  (animation.Demon5_animations, '5', 2)],
 ]
 L3_BOSS=[[(animation.Boss_animations,'Boss',1),],]
    
@@ -127,9 +127,9 @@ is_dashing=False
 is_changing_character=False
 is_jumping=False
 current_level='1'
-is_level1=True
+is_level1=False
 is_level2=False
-is_level3=False
+is_level3=True
 
 #load button image
 start_img=pygame.image.load("assets/buttons/start_btn.png").convert()
@@ -142,7 +142,8 @@ bg_img_building = pygame.image.load("assets/Background/Night/2.png").convert()
 #scale background
 bg_img=pygame.transform.scale(bg_img,(cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
 bg_img_building=pygame.transform.scale(bg_img_building,(cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
-
+rin_img=pygame.image.load("assets/alliance/Rin_dialog.png").convert()
+Rin_img=pygame.transform.scale(rin_img,(cons.SCREEN_WIDTH//2,cons.SCREEN_HEIGHT//2))
 
 #load items
 cake_img=pygame.image.load('assets/food/Icon21_03.png').convert_alpha()
@@ -655,6 +656,7 @@ while game_run:
         if game_over_timer>0:
             game_over_timer-=delta_time
             UI.draw_text_screen(screen,font,'You won! good job.')
+            screen.blit(Rin_img,(0,0))
         else:
             screen.fill((0,0,0))
             if restart_button.draw(screen):
@@ -675,7 +677,8 @@ while game_run:
                 show_dialog_timer = 3000
                 level_complete_shop = False
                 enemy_list.clear()
-                alliance_group.clear()
+                if not alliance_group.empty():
+                 alliance_group.clear()
                 reset_level(world, player, enemy_list, fire_ball_group, charge_group,
                             dagame_Text_group, item_group, world_data, object_data,
                             platform_data, tile_list, obj_tile_list)
@@ -1107,7 +1110,7 @@ while game_run:
     #Level_text.draw_text(screen)
          if current_level=='1':
           score_text=UI.Text(50,15,f'{player.score}/{cons.L1_GOAL}',font,cons.PURPLE)
-         elif current_level=='2':
+         elif current_level=='2'or current_level=='3':
           score_text=UI.Text(50,15,f'{player.score}/{cons.L2_GOAL}',font,cons.PURPLE)
          score_text.draw_text(screen)
          score_text.update(screen_scroll)
