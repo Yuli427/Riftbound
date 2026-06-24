@@ -186,43 +186,44 @@ class Alliance(pygame.sprite.Sprite):
             self.vel_y = 0
             return
         
-        in_attack_range = abs_dx < self.attack_range and abs_dy < 60
-
-        if not in_attack_range:
-            if abs_dy<60:
-                self.is_running=True
-                if self.rect.centerx>self.target.rect.centerx:
-                    self.dx=-self.fast_speed
-                elif self.rect.centerx<self.target.rect.centerx:    
-                    self.dx=self.fast_speed
-            else:
-                    self.dx=0
-            # if self.rect.centery>self.target.rect.centery:
-            #     self.dy=-self.speed
-            # if self.rect.centery<self.target.rect.centery:
-            #     self.dy=self.speed
         
-            if self.dx>0:
-                self.facing_right=True
-            elif self.dx<0:
-                self.facing_right=False
-            else:
-                self.facing_right=True
+        # in_attack_range = abs_dx < self.attack_range and abs_dy < 60
+
+        # if not in_attack_range:
+        #     if abs_dy<60:
+        #         self.is_running=True
+        #         if self.rect.centerx>self.target.rect.centerx:
+        #             self.dx=-self.fast_speed
+        #         elif self.rect.centerx<self.target.rect.centerx:    
+        #             self.dx=self.fast_speed
+        #     else:
+        #             self.dx=0
+        #     # if self.rect.centery>self.target.rect.centery:
+        #     #     self.dy=-self.speed
+        #     # if self.rect.centery<self.target.rect.centery:
+        #     #     self.dy=self.speed
+        
+        #     if self.dx>0:
+        #         self.facing_right=True
+        #     elif self.dx<0:
+        #         self.facing_right=False
+        #     else:
+        #         self.facing_right=True
             
-        else:
-            self.is_attacking=True
-            self.dy=0
-            self.dx=0
-            if self.attack_cooldown<=0:
-                self.target.health-=self.damage
-                self.target.stunned=True
-                self.target.stun_until=cons.STUN_TIME
-                if self.target.health<=0:
-                    self.target.alive=False
-                    self.target.health=0
-                self.attack_cooldown=20
-            else:
-                self.attack_cooldown-=1
+        # else:
+        #     self.is_attacking=True
+        #     self.dy=0
+        #     self.dx=0
+        #     if self.attack_cooldown<=0:
+        #         self.target.health-=self.damage
+        #         self.target.stunned=True
+        #         self.target.stun_until=cons.STUN_TIME
+        #         if self.target.health<=0:
+        #             self.target.alive=False
+        #             self.target.health=0
+        #         self.attack_cooldown=20
+        #     else:
+        #         self.attack_cooldown-=1
             
       
       

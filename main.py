@@ -535,7 +535,7 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     player.hit = False
     player.stunned = False
     player.player_state = 'Idle'
-    player.score = 0
+    #player.score = 0
 
    
  
@@ -833,7 +833,7 @@ while game_run:
                     else:
                         #if this is the last wave,deactivate the wave
                         wave_active=False
-                        if not level_complete_shop and player.score>cons.L1_GOAL:
+                        if not level_complete_shop and player.score>=cons.L1_GOAL:
                             level_complete_shop=True
                             is_shopmenu=True
              if is_level2:
@@ -855,7 +855,7 @@ while game_run:
                                
                         else:
                             wave_active=False
-                            if not level_complete_shop and player.score>cons.L2_GOAL:
+                            if not level_complete_shop and player.score>=cons.L2_GOAL:
                                 level_complete_shop=True
                                 is_shopmenu=True
              if is_level3:
