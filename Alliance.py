@@ -42,36 +42,37 @@ class Alliance(pygame.sprite.Sprite):
 
      self.dy=0
      self.dx=0
+     self.health = 100
+     
 
 
      if name == 'Rin':
-        self.health = 100
-        self.speed = 3
-        self.fast_speed = 5
-        self.attack_range = 50
-        self.damage = 40
-        self.detect_range = 800
+            self.speed = 3
+            self.fast_speed = 5
+            self.attack_range = 50
+            self.damage = 10
+            self.detect_range = 800
+
      elif name == 'Vesper':
-        self.health = 100
-        self.speed = 2
-        self.fast_speed = 4
-        self.attack_range = 150
-        self.damage = 30
-        self.detect_range = 1000
+            self.speed = 2
+            self.fast_speed = 4
+            self.attack_range = 150
+            self.damage = 8
+            self.detect_range = 1000
+
      elif name == 'Fuma':
-        self.health = 100
-        self.speed = 6
-        self.fast_speed = 9
-        self.attack_range = 50
-        self.damage = 60
-        self.detect_range = 900
+            self.speed = 6
+            self.fast_speed = 6
+            self.attack_range = 50
+            self.damage = 12
+            self.detect_range = 900
+
      elif name == 'Ares':
-        self.health = 200
-        self.speed = 2
-        self.fast_speed = 4
-        self.attack_range = 60
-        self.damage = 80
-        self.detect_range = 1000
+            self.speed = 2
+            self.fast_speed = 4
+            self.attack_range = 60
+            self.damage = 14
+            self.detect_range = 1000
 
 
 #dx 指的是在 水平方向（X 轴）上的位移增量。dy 指的是在 垂直方向（Y 轴）上的位移增量。
@@ -84,7 +85,7 @@ class Alliance(pygame.sprite.Sprite):
            
 
 
-       hit_cooldown = 1000
+       hit_cooldown = 3000
        if self.hit==True:
            if (pygame.time.get_ticks()-self.last_hit) > hit_cooldown:
                 self.hit=False
@@ -137,13 +138,13 @@ class Alliance(pygame.sprite.Sprite):
         self.dx=0
         return
        
-       if y_dist>50 and self.on_ground:
-        for tile in world.obstacle_tiles:
-            if(tile.left<self.rect.centerx<tile.right) and self.rect.top-tile.bottom<self.dist_to_tile and tile.bottom<self.rect.top:
-                            self.is_jumping=True
-                            self.rect.bottom=tile.top
-                            self.vel_y=-15
-                            self.on_ground=True
+    #    if y_dist>50 and self.on_ground:
+    #     for tile in world.obstacle_tiles:
+    #         if(tile.left<self.rect.centerx<tile.right) and self.rect.top-tile.bottom<self.dist_to_tile and tile.bottom<self.rect.top:
+    #                         self.is_jumping=True
+    #                         self.rect.bottom=tile.top
+    #                         self.vel_y=-15
+    #                         self.on_ground=True
 
     
 
@@ -189,43 +190,43 @@ class Alliance(pygame.sprite.Sprite):
 
         
         
-        # in_attack_range = abs_dx < self.attack_range and abs_dy < 60
+        in_attack_range = abs_dx < self.attack_range and abs_dy < 60
 
-        # if not in_attack_range:
-        #     if abs_dy<60:
-        #         self.is_running=True
-        #         if self.rect.centerx>self.target.rect.centerx:
-        #             self.dx=-self.fast_speed
-        #         elif self.rect.centerx<self.target.rect.centerx:    
-        #             self.dx=self.fast_speed
-        #     else:
-        #             self.dx=0
-        #     # if self.rect.centery>self.target.rect.centery:
-        #     #     self.dy=-self.speed
-        #     # if self.rect.centery<self.target.rect.centery:
-        #     #     self.dy=self.speed
+        if not in_attack_range:
+            if abs_dy<100:
+                self.is_running=True
+                if self.rect.centerx>self.target.rect.centerx:
+                    self.dx=-self.fast_speed
+                elif self.rect.centerx<self.target.rect.centerx:    
+                    self.dx=self.fast_speed
+            else:
+                    self.dx=0
+            # if self.rect.centery>self.target.rect.centery:
+            #     self.dy=-self.speed
+            # if self.rect.centery<self.target.rect.centery:
+            #     self.dy=self.speed
         
-        #     if self.dx>0:
-        #         self.facing_right=True
-        #     elif self.dx<0:
-        #         self.facing_right=False
-        #     else:
-        #         self.facing_right=True
+            if self.dx>0:
+                self.facing_right=True
+            elif self.dx<0:
+                self.facing_right=False
+            else:
+                self.facing_right=True
             
-        # else:
-        #     self.is_attacking=True
-        #     self.dy=0
-        #     self.dx=0
-        #     if self.attack_cooldown<=0:
-        #         self.target.health-=self.damage
-        #         self.target.stunned=True
-        #         self.target.stun_until=cons.STUN_TIME
-        #         if self.target.health<=0:
-        #             self.target.alive=False
-        #             self.target.health=0
-        #         self.attack_cooldown=20
-        #     else:
-        #         self.attack_cooldown-=1
+        else:
+            self.is_attacking=True
+            self.dy=0
+            self.dx=0
+            if self.attack_cooldown<=0:
+                self.target.health-=self.damage
+                self.target.stunned=True
+                self.target.stun_until=cons.STUN_TIME
+                if self.target.health<=0:
+                    self.target.alive=False
+                    self.target.health=0
+                self.attack_cooldown=20
+            else:
+                self.attack_cooldown-=1
             
       
       

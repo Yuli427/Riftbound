@@ -17,7 +17,7 @@ from Alliance import Alliance as All
 
 pygame.init()
 
-game_name='Nakana'
+game_name='Riftbound'
 #open a window
 screen=pygame.display.set_mode((cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
 pygame.display.set_caption(game_name)
@@ -59,6 +59,7 @@ was_freezed = False
 player_name = ''
 selected_gender = 'Female'
 choosing = True
+finish_anime=cons.DEATH_PLAY
 
 enemy1_cooldown=random.randint(3000,5000)
 enemy2_cooldown=0
@@ -88,12 +89,14 @@ fire_spawn_timer=0
 
 
 
+
+
 L1_WAVES = [
     [(animation.Demon1_animations, '1', 1)],
-    # [(animation.Demon1_animations, '1', 2),
-    #  (animation.Demon4_animations, '4', 1)],
-    # [(animation.Demon1_animations, '1', 2),
-    #  (animation.Demon4_animations, '4', 2)],
+     [(animation.Demon1_animations, '1', 2),
+      (animation.Demon4_animations, '4', 1)],
+     [(animation.Demon1_animations, '1', 2),
+      (animation.Demon4_animations, '4', 2)],
 ]
 
 L2_WAVES = [
@@ -107,13 +110,13 @@ L2_WAVES = [
 ]
 
 L3_WAVES = [
-    # [(animation.Demon1_animations, '1', 2),
-    #  (animation.Demon5_animations, '5', 1)],
-    # [(animation.Demon4_animations, '4', 2),
-    #  (animation.Demon5_animations, '5', 2)],
-    # [(animation.Demon1_animations, '1', 2),
-    #  (animation.Demon4_animations, '4', 1),
-    #  (animation.Demon5_animations, '5', 2)],
+     [(animation.Demon1_animations, '1', 2),
+      (animation.Demon5_animations, '5', 1)],
+     [(animation.Demon4_animations, '4', 2),
+      (animation.Demon5_animations, '5', 2)],
+     [(animation.Demon1_animations, '1', 2),
+      (animation.Demon4_animations, '4', 1),
+      (animation.Demon5_animations, '5', 2)],
 ]
 L3_BOSS=[[(animation.Boss_animations,'Boss',1),],]
    
@@ -126,7 +129,7 @@ is_attacking=False
 is_dashing=False
 is_changing_character=False
 is_jumping=False
-current_level='1'
+current_level='3'
 is_level1=False
 is_level2=False
 is_level3=True
@@ -142,8 +145,7 @@ bg_img_building = pygame.image.load("assets/Background/Night/2.png").convert()
 #scale background
 bg_img=pygame.transform.scale(bg_img,(cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
 bg_img_building=pygame.transform.scale(bg_img_building,(cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
-rin_img=pygame.image.load("assets/alliance/Rin_dialog.png").convert()
-Rin_img=pygame.transform.scale(rin_img,(cons.SCREEN_WIDTH//2,cons.SCREEN_HEIGHT//2))
+
 
 #load items
 cake_img=pygame.image.load('assets/food/Icon21_03.png').convert_alpha()
@@ -380,6 +382,7 @@ Fuma=All(450,700,'Fuma',animation.Fuma_animations)
 Ares=All(450,700,'Ares',animation.Ares_animations)
 #default
 alliance=Rin
+has_alliance=False
 #create sprite groups
 alliance_group=pygame.sprite.Group()
 arrow_group=pygame.sprite.Group()
@@ -392,7 +395,7 @@ Fire_hazard_group=pygame.sprite.Group()
 #item_group.add(cake)
 item_group.add(money_icon)
 fire_ball_group.add()
-alliance_group.add()
+
 
 
 #create screen fade 
@@ -425,6 +428,12 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     global is_level1
     global is_level2
     global is_level3
+    global finish_anime
+    global current_level
+    global is_boss_spawned
+    global phase2_triggered
+    global has_alliance
+    finish_anime=cons.DEATH_PLAY
     show_dialog_timer=3000
     is_purchased=False
     is_dialog_active=False
@@ -439,7 +448,29 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     item_group.add(money_icon)
     Fire_hazard_group.empty()
     Tornado_group.empty()
+    is_boss_spawned = False
+    phase2_triggered = False
+    #reset alliance
+    alliance_group.empty()
+    if has_alliance:
+        alliance.rect.center = (450, 700)
+        alliance.health = 100
+        alliance.alive = True
+        alliance.hit = False
+        alliance.stunned = False
+        alliance.vel_y = 0
+        alliance.dx = 0
+        alliance.dy = 0
+        alliance_group.empty()
+        alliance_group.add(alliance)
     
+
+
+
+    
+ 
+
+
 
     # 重新读CSV
     def read_csv(path):
@@ -536,10 +567,62 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     player.hit = False
     player.stunned = False
     player.player_state = 'Idle'
-    #player.score = 0
+    player.score = 0
 
    
- 
+def reset_to_boss_checkpoint(world, player, enemy_list):
+    global current_wave
+    global wave_active
+    global is_boss_spawned
+    global phase2_triggered
+    global finish_anime
+    global fire_spawn_timer
+    global turnado_spawn_timer
+    global is_dialog_active
+
+    # 先清空战斗内容
+    enemy_list.clear()
+    fire_ball_group.empty()
+    charge_group.empty()
+    arrow_group.empty()
+    Tornado_group.empty()
+    Fire_hazard_group.empty()
+    dagame_Text_group.empty()
+
+    # 重置玩家
+    player.rect.center = (200, 700)
+    player.vel_y = 0
+    player.health = 100
+    player.alive = True
+    player.hit = False
+    player.stunned = False
+    player.is_freezed = False
+    player.player_state = 'Idle'
+
+    # Boss 战不带 alliance
+    alliance_group.empty()
+
+    # 直接跳到 L3 waves 结束后的状态
+    current_wave = len(L3_WAVES)
+    wave_active = True
+    is_boss_spawned = True
+    phase2_triggered = False
+    finish_anime = cons.DEATH_PLAY
+
+    fire_spawn_timer = 1200
+    turnado_spawn_timer = 9000
+
+    # 重新生成 Boss
+    sx, sy = random.choice(spawn_tile)
+    x = sx + world.scroll_x
+    y = sy + world.scroll_y
+
+    boss = Character(x, y, 650, animation.Boss_animations, 'Boss')
+    boss.max_health_boss = 650
+    enemy_list.append(boss)
+
+    # 可选：重新显示 Boss dialog
+    is_dialog_active = True
     
 
 while choosing:
@@ -559,12 +642,12 @@ while choosing:
     
     #create player
     if selected_gender=='Female':
-        player=Character(200,700,75,animation.School_girl_animations,'0')
+        player=Character(200,700,100,animation.School_girl_animations,'0')
     else:
-        player=Character(200,700,75,animation.School_boy1_animations,'0')
+        player=Character(200,700,100,animation.School_boy1_animations,'0')
     screen.fill(cons.BACK_GROUND)
     UI.draw_choose_menu(screen, font, player_name, selected_gender, game_name,True)
-    name_text=UI.Text(200,15,player_name,font,cons.PURPLE)
+    name_text=UI.Text(300,15,player_name,font,cons.PURPLE)
     pygame.display.update()
     
     
@@ -593,25 +676,31 @@ while game_run:
                      player.score-=cons.Fujiwara_Rin
                      alliance_group.empty()
                      is_shopmenu=False
-                     alliance_group.add(Rin)
+                     has_alliance=True
+                     alliance=Rin
                 elif is_purchased==True and alliance.name== 'Vesper' :
                      player.score-=cons.Vesper
                      alliance_group.empty()
                      is_shopmenu=False
-                     alliance_group.add(Vesper)
+                     alliance=Vesper
+                     has_alliance=True
                 elif is_purchased==True and alliance.name== 'Fuma' :
                      player.score-=cons.Himura
                      alliance_group.empty()
                      is_shopmenu=False
-                     alliance_group.add(Fuma)
+                     alliance=Fuma
+                     has_alliance=True
                 elif is_purchased==True and alliance.name=='Ares' :
                      player.score-=cons.Ares
                      alliance_group.empty()
                      is_shopmenu=False
-                     alliance_group.add(Ares)
-                        #check if the level is complete
+                     alliance=Ares
+                     has_alliance=True
+                        #check if the level is complete'
                 elif not_purchased:
                     is_shopmenu=False
+                
+                alliance_group.add(alliance)
 
                 if level_complete_shop and not is_shopmenu:
                         level_complete_shop=False
@@ -621,7 +710,7 @@ while game_run:
 
     elif is_dialog_active:
        if is_boss_spawned==True and current_level=='3':
-           UI.draw_dialog(screen, font, alliance, 'The final BOSS has arrived!')
+           UI.draw_dialog(screen, font, alliance, f'The final BOSS has arrived! You must fight alone, {alliance.name} will not able to help you now.. ')
        elif show_goal_dialog_l1 and current_level=='1':
            UI.draw_dialog(screen, font, alliance, f'Goal: Eliminate all enemies and obtain {cons.L1_GOAL}. Remember you need to find them if you can\'t see them...')
        elif show_goal_dialog_l2 and current_level=='2':
@@ -656,7 +745,6 @@ while game_run:
         if game_over_timer>0:
             game_over_timer-=delta_time
             UI.draw_text_screen(screen,font,'You won! good job.')
-            screen.blit(Rin_img,(0,0))
         else:
             screen.fill((0,0,0))
             if restart_button.draw(screen):
@@ -678,7 +766,7 @@ while game_run:
                 level_complete_shop = False
                 enemy_list.clear()
                 if not alliance_group.empty():
-                 alliance_group.clear()
+                 alliance_group.empty()
                 reset_level(world, player, enemy_list, fire_ball_group, charge_group,
                             dagame_Text_group, item_group, world_data, object_data,
                             platform_data, tile_list, obj_tile_list)
@@ -829,7 +917,17 @@ while game_run:
                                 #因为spawn tile的位置已改变， 玩家移动过了，scroll 不是0，原始坐标已经偏离屏幕，所以刷在看不到的地方
                                 x=sx+world.scroll_x
                                 y=sy+world.scroll_y
-                                enemy=Character(x,y,100,anim,ctype)
+                                if ctype=='1':
+                                 enemy=Character(x,y,100,anim,ctype)
+                                elif ctype=='2':
+                                 enemy=Character(x,y,90,anim,ctype)
+                                elif ctype=='3':
+                                 enemy=Character(x,y,130,anim,ctype)
+                                elif ctype=='4':
+                                 enemy=Character(x,y,150,anim,ctype)
+                                elif ctype=='5':
+                                 enemy=Character(x,y,120,anim,ctype)
+
                                 enemy_list.append(enemy)
 
                            
@@ -861,6 +959,7 @@ while game_run:
                             if not level_complete_shop and player.score>=cons.L2_GOAL:
                                 level_complete_shop=True
                                 is_shopmenu=True
+             
              if is_level3:
                     current_level='3'
                     if not wave_active or (wave_active and len(enemy_list)==0):
@@ -889,10 +988,12 @@ while game_run:
                                         y=sy+world.scroll_y
                                         boss=Character(x,y,100,anim,ctype)
                                         enemy_list.append(boss)
+                                        alliance_group.empty()
                                 
                                
                         
                     if is_boss_spawned and len(enemy_list)>0:
+                                        
                                         boss = enemy_list[0]  
                                     #if boss.health <= 50 and not phase2_triggered:
                                         
@@ -904,7 +1005,7 @@ while game_run:
                                                     tornado_spawn_x=random.randint(200,800)
                                                     tornado = Tornado(tornado_spawn_x, 350, animation.wind_ball_animation)
                                                     Tornado_group.add(tornado)
-                                                    turnado_spawn_timer=2000
+                                                    turnado_spawn_timer=10000
                                             if fire_spawn_timer<=0:
                                                     sx1, sy1 = random.choice(Tornado_spawn_tile)
                                                     x1 = sx1 + world.scroll_x
@@ -912,8 +1013,11 @@ while game_run:
                                                     fire = FireHazard(x1, y1, animation.Fire_animation)
                                                     Fire_hazard_group.add(fire)
                                                     fire_spawn_timer=800
-                                            if boss.alive==False:
-                                                game_over=True
+                                        if boss.alive==False:
+                                                finish_anime-=delta_time
+                                                if finish_anime<=0:                   
+                                                 game_over=True
+                                                  
                                                
                                                 
                         
@@ -966,27 +1070,28 @@ while game_run:
              
             
              item_spawn_cooldown-=delta_time
-             if item_spawn_cooldown<=0:
-                 sx,sy=random.choice(spawn_tile)
-                 x=sx+world.scroll_x
-                 y=sy+world.scroll_y
-                 money=Item(x,y+40,'1',money_img,animation.Money_animation,False)
-                 if len(item_group)<=4:
-                     item_group.add(money)
-
-                 item_spawn_cooldown=random.randint(3000,5000)
-             
-             if alliance.alive:
-                potion_spawned=False
-
-             if alliance.alive==False:
-               if not potion_spawned:
+             if current_level=='1' or current_level=='2':
+                if item_spawn_cooldown<=0:
                     sx,sy=random.choice(spawn_tile)
                     x=sx+world.scroll_x
                     y=sy+world.scroll_y
-                    potion=Item(x,y+40,'2',potion_img,None,False)
-                    item_group.add(potion)
-                    potion_spawned=True
+                    money=Item(x,y+40,'1',money_img,animation.Money_animation,False)
+                    if len(item_group)<=4:
+                        item_group.add(money)
+
+                    item_spawn_cooldown=random.randint(3000,5000)
+             if not alliance==None: 
+                if alliance.alive:
+                    potion_spawned=False
+
+                if alliance.alive==False:
+                 if not potion_spawned:
+                        sx,sy=random.choice(spawn_tile)
+                        x=sx+world.scroll_x
+                        y=sy+world.scroll_y
+                        potion=Item(x,y+40,'2',potion_img,None,False)
+                        item_group.add(potion)
+                        potion_spawned=True
             
                     
              if is_attacking==True and not player.is_freezed:
@@ -1057,7 +1162,8 @@ while game_run:
             
 
 
-    
+         if not player.alive:
+          player.move(0, 0, world)
          player.update()
          player.draw(screen)
          player.update_player_state(dx,dy,is_attacking,is_dashing,is_jumping)
@@ -1104,16 +1210,16 @@ while game_run:
     
 
     #Text
-         if is_level1:
-          vertical_text.draw_vertical_text(screen)
-          vertical_text.update(screen_scroll)
+
     #Level_text.draw_text(screen)
          if current_level=='1':
           score_text=UI.Text(50,15,f'{player.score}/{cons.L1_GOAL}',font,cons.PURPLE)
-         elif current_level=='2'or current_level=='3':
+          score_text.draw_text(screen)
+          score_text.update(screen_scroll)
+         elif current_level=='2':
           score_text=UI.Text(50,15,f'{player.score}/{cons.L2_GOAL}',font,cons.PURPLE)
-         score_text.draw_text(screen)
-         score_text.update(screen_scroll)
+          score_text.draw_text(screen)
+          score_text.update(screen_scroll)
          name_text.update(screen_scroll)
          name_text.draw_text(screen)
 
@@ -1121,9 +1227,12 @@ while game_run:
     #show death screen
          if player.alive==False:
              if death_fade.fade(screen):
+              died_during_boss = current_level == '3' and is_boss_spawned
               if restart_button.draw(screen):
                   death_fade.fade_counter=0
                   reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
+                  if died_during_boss:
+                    reset_to_boss_checkpoint(world, player, enemy_list)
                   
             
             

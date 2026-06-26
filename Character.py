@@ -280,6 +280,7 @@ class Character():
        
         #calculate distance between player
         dist=math.sqrt(((self.rect.centerx-player.rect.centerx)**2) + ((self.rect.centery-player.rect.centery)**2))
+       
         dist_alliance=math.sqrt(((self.rect.centerx-alliance.rect.centerx)**2) + ((self.rect.centery-alliance.rect.centery)**2))
 
         #create a line of sight from the enemy to the player (start and end point) 
@@ -311,8 +312,8 @@ class Character():
                      dy_vec = player.rect.centery - self.rect.centery
                      # 归一化：方向 * 速度(normalization)   
                      if dist > 0:
-                            ai_dx = (dx_vec / dist) * cons.ENEMY_SPEED
-                            ai_dy = (dy_vec / dist) * cons.ENEMY_SPEED
+                            ai_dx = (dx_vec / dist) * cons.ENEMY_FLY_SPPED
+                            ai_dy = (dy_vec / dist) * cons.ENEMY_FLY_SPPED
                      self.has_charged=False
                      
                  else:
@@ -351,7 +352,7 @@ class Character():
                             self.rect.centerx=player.rect.centerx+50
                             self.rect.centery=player.rect.centery
                             if self.attack_cooldown <= 0:
-                                #player.health -= 30
+                                player.health -= 30
                                 player.hit = True
                                 player.last_hit = pygame.time.get_ticks()
                                 self.attack_cooldown = 60
@@ -372,7 +373,7 @@ class Character():
                   ai_dx=0
                   if player.hit==False:
                      #print(f"[DMG] id={id(self)} hp={self.health} alive={getattr(self,'alive',None)} "f"dist={dist:.1f} dy={dy} "f"enemy=({self.rect.centerx},{self.rect.centery}) "f"player=({player.rect.centerx},{player.rect.centery}) "f"t={pygame.time.get_ticks()}")
-                     #player.health-=10
+                     player.health-=5
                      player.hit=True
                      player.last_hit=pygame.time.get_ticks()
                    
@@ -381,10 +382,10 @@ class Character():
                   ai_dx=0
                   if alliance.hit==False and alliance.alive:
                       alliance.hit=True
-                      alliance.health-=0
+                      alliance.health-=10
                       alliance.last_hit=pygame.time.get_ticks()
 
-                elif self.char_type=='2' and dist<300:
+                elif self.char_type=='2' and dist<500:
                   self.enemy_state='Ranged_Attack'
                   if pygame.time.get_ticks()-self.last_fireball_attack>=self.fireball_cooldown:
                          fireball=Fire_ball(fireball_image,self.rect.centerx,self.rect.centery,player.rect.centerx,player.rect.centery)
@@ -433,7 +434,7 @@ class Character():
 
    
         #因为重力在move，所以无论什么情况都得调用
-        if self.enemy_state in ['Walk', 'Idle', 'Dead', 'Attack','Run']:
+        if self.enemy_state in ['Walk', 'Idle', 'Dead', 'Attack','Run','Stunned']:
          self.move(ai_dx,ai_dy,world)
     
 
@@ -513,7 +514,7 @@ class Character():
              surface.blit(flipped_image,image_rect)
         else:
              surface.blit(draw_image,image_rect)
-        pygame.draw.rect(surface,cons.RED,self.rect,1)  
+        #pygame.draw.rect(surface,cons.RED,self.rect,1)  
         
    
 
@@ -581,12 +582,12 @@ class Character():
             return 0, None, None
         
         #reset cooldown time
-        self.attack_cooldown=10
+        self.attack_cooldown=20
 
       
         for enemy in enemylist:
             if enemy.rect.colliderect(self.rect) and enemy.alive:
-                damage=random.randint(80,100)
+                damage=random.randint(25, 35)
                 enemy.health-=damage
                 hit_enemy=enemy
                 damage_pos=enemy.rect

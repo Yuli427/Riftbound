@@ -226,10 +226,16 @@ class Charge(pygame.sprite.Sprite):
         if not self.owner.alive or self.owner.health<=0:
             self.kill()
             return
-        if player.rect.colliderect(self.rect) and player.hit == False:
-            player.hit= True
-            player.last_hit=pygame.time.get_ticks()
-            #player.health-=10
+        if self.owner.char_type == '5':
+         damage_box = self.rect.inflate(40, 90)   # enemy5 飞行怪，纵向判定大一点
+        else:
+         damage_box = self.rect.inflate(20, 40)   # 普通 charge 怪
+
+        if player.rect.colliderect(damage_box) and player.hit == False and player.alive:
+            player.health -= random.randint(15, 20)
+            player.hit = True
+            player.last_hit = pygame.time.get_ticks()
+           
             
             
     

@@ -35,7 +35,7 @@ class Item(pygame.sprite.Sprite):
         
     def draw(self,surface):
         surface.blit(self.image,self.rect)
-        pygame.draw.rect(surface,cons.RED,self.rect,1)  
+        #pygame.draw.rect(surface,cons.RED,self.rect,1)  
     
 
     def update(self,screen_scroll,player,alliance):
