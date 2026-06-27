@@ -1,16 +1,16 @@
 import pygame
-import csv
-import json
-import os
 import random
+from State import GameState
+from assets import load_static_assets,L1_WAVES,L2_WAVES,L3_WAVES,L3_BOSS
 import Constants as cons
 import animation
 import UI
-from Character import Character
-from Weapon import Weapon,Tornado,FireHazard
+from Player import Player
+from level_loader import load_level_world
+from Enemy import Enemy
+from Weapon import Tornado,FireHazard
 from Effects import dagameText
 from item import Item
-from World import World
 from Button import Button
 from Alliance import Alliance as All
 
@@ -22,103 +22,30 @@ game_name='Riftbound'
 screen=pygame.display.set_mode((cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
 pygame.display.set_caption(game_name)
 
-#create clock for frame rate
 clock= pygame.time.Clock()
+state = GameState()
+assets = load_static_assets()
+#load assets
+start_img = assets["start_img"]
+resume_img = assets["resume_img"]
+exit_img = assets["exit_img"]
+restart_img = assets["restart_img"]
 
-#define game variables
-start_game=False
-pause_game=False
-game_over=False
-tileset_path = 'assets/object/obj.tsj'
-tileset_dir = os.path.dirname(tileset_path)
-start_intro=False
-opening_intro=False
-is_shopmenu=False
-show_goal_dialog_l1=False
-show_goal_dialog_l2=False
-show_goal_dialog_l3=False
-is_purchased=False
-not_purchased=False
-
-level_complete_shop = False
-pending_level_load = False
-
-opening_intro_timer=cons.INTRO_TIMER
-game_over_timer=cons.GAME_OVER_TIMER
-victory_timer=cons.VICTORY_TIMER
-
-is_alived_agian=False
-potion_spawned=False
-is_dialog_active=False
-wants_close_dialog=False
-dialog_message=''
-show_dialog_timer=3000
-
-was_freezed = False
-#initial choices
-player_name = ''
-selected_gender = 'Female'
-choosing = True
-finish_anime=cons.DEATH_PLAY
-
-enemy1_cooldown=random.randint(3000,5000)
-enemy2_cooldown=0
-enemy3_cooldown=0
-enemy4_cooldown=0
-enemy5_cooldown=0
-
-item_spawn_cooldown=random.randint(3000,5000)
-
-num_of_enemy_killed=0
-enemy_left=0
-
-enemy1_counter=0
-enemy2_counter=0
-enemy3_counter=0
-enemy4_counter=0
-
-current_wave = 0        # 当前是第几波（0表示还没开始）
-wave_active = False     # 当前波是否正在进行
-wave_cleared = False    # 当前波是否清完了
-is_boss_spawned=False
-phase2_triggered=False
-turnado_spawn_timer=0
-fire_spawn_timer=0
+bg_img = assets["bg_img"]
+bg_img_building = assets["bg_img_building"]
+money_img = assets["money_img"]
+money_icon_img = assets["money_icon_img"]
+potion_img = assets["potion_img"]
+fire_ball_image = assets["fire_ball_image"]
+charge_image = assets["charge_image"]
+font = assets["font"]
+smaller_font = assets["smaller_font"]
 
 
 
 
+state.item_spawn_cooldown=random.randint(3000,5000)
 
-
-
-L1_WAVES = [
-    [(animation.Demon1_animations, '1', 1)],
-     [(animation.Demon1_animations, '1', 2),
-      (animation.Demon4_animations, '4', 1)],
-     [(animation.Demon1_animations, '1', 2),
-      (animation.Demon4_animations, '4', 2)],
-]
-
-L2_WAVES = [
-    [(animation.Demon1_animations, '1', 2),
-     (animation.Demon2_animations, '2', 1)],
-    [(animation.Demon1_animations, '1', 2),
-     (animation.Demon2_animations, '2', 1),
-     (animation.Demon3_animations, '3', 1)],
-    [(animation.Demon2_animations, '2', 2),
-     (animation.Demon3_animations, '3', 2)],
-]
-
-L3_WAVES = [
-     [(animation.Demon1_animations, '1', 2),
-      (animation.Demon5_animations, '5', 1)],
-     [(animation.Demon4_animations, '4', 2),
-      (animation.Demon5_animations, '5', 2)],
-     [(animation.Demon1_animations, '1', 2),
-      (animation.Demon4_animations, '4', 1),
-      (animation.Demon5_animations, '5', 2)],
-]
-L3_BOSS=[[(animation.Boss_animations,'Boss',1),],]
    
 #define player movement variable
 moving_left=False
@@ -129,238 +56,20 @@ is_attacking=False
 is_dashing=False
 is_changing_character=False
 is_jumping=False
-current_level='3'
-is_level1=False
-is_level2=False
-is_level3=True
-
-#load button image
-start_img=pygame.image.load("assets/buttons/start_btn.png").convert()
-resume_img=pygame.image.load("assets/buttons/resume_btn.png").convert()
-exit_img=pygame.image.load("assets/buttons/exit_btn.jpg").convert()
-restart_img=pygame.image.load("assets/buttons/restart_btn.png").convert()
-#load background img
-bg_img = pygame.image.load("assets/Background/Night/1.png").convert()
-bg_img_building = pygame.image.load("assets/Background/Night/2.png").convert()
-#scale background
-bg_img=pygame.transform.scale(bg_img,(cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
-bg_img_building=pygame.transform.scale(bg_img_building,(cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
 
 
-#load items
-cake_img=pygame.image.load('assets/food/Icon21_03.png').convert_alpha()
-coffee_img=pygame.image.load('assets/food/Icon21_11.png').convert_alpha()
-money_img=pygame.image.load('assets/items/Money.png').convert_alpha()
-money_icon_img=pygame.image.load('assets/items/moneyicon.png').convert_alpha()
-potion_img=pygame.image.load('assets/items/potion_red.png').convert_alpha()
-money_icon_img = pygame.transform.scale(money_icon_img, (64, 64))
-#load weapon
-bow_image= pygame.image.load('assets/weapon/bow.png').convert_alpha()
-arrow_image=pygame.image.load('assets/weapon/arrow.png').convert_alpha()
-fire_ball_image=pygame.image.load('assets/weapon/fireball.png').convert_alpha()
-charge_image=pygame.image.load('assets/weapon/Charge.png').convert_alpha()
+#level loader
+level_data = load_level_world(state.current_level)
 
-#load font
-font=pygame.font.Font('assets/font/AtariClassic.ttf',20)
-smaller_font=pygame.font.Font('assets/font/AtariClassic.ttf',15)
-JAPA_font=pygame.font.Font('assets/font/NotoSansJP-Bold.ttf',23)
-#load tile
-tile_list=[]
-if is_level1:
-    for x in range(cons.TILE_TYPES):
-        if is_level1:
-            #tile_image=pygame.image.load(f'assets/tiles/{x}.png').convert_alpha()
-            tile_image=pygame.image.load(f'assets/level1_background_tile/Tile_{x+1:02d}.png').convert_alpha()
-            #tile_image=pygame.transform.scale(tile_image,(cons.TILE_SIZE,cons.TILE_SIZE))
-            tile_list.append(tile_image)
-elif is_level2:
-    for x in range(cons.TILE_TYPES):
-        tile_image=pygame.image.load(f'assets/level2_background_tile/Tiles_{x+1:02d}.png').convert_alpha()
-        #tile_image=pygame.transform.scale(tile_image,(cons.TILE_SIZE,cons.TILE_SIZE))
-        tile_list.append(tile_image)
-else:
-   for x in range(cons.TILE_TYPES):
-        tile_image=pygame.image.load(f'assets/level3_background_tile/Tile_{x+1:02d}.png').convert_alpha()
-        #tile_image=pygame.transform.scale(tile_image,(cons.TILE_SIZE,cons.TILE_SIZE))
-        tile_list.append(tile_image)
-
-obj_tile_list=[] 
-if is_level1:   
-    for x in range(26):
-    
-            #tile_image=pygame.image.load(f'assets/tiles/{x}.png').convert_alpha()
-            tile_image=pygame.image.load(f'assets/level1_obj_tile/{x+1}.png').convert_alpha()
-            #tile_image=pygame.transform.scale(tile_image,(cons.TILE_SIZE,cons.TILE_SIZE))
-            obj_tile_list.append(tile_image)
-elif  is_level2:
-    for x in range(26):
-        #tile_image=pygame.image.load(f'assets/tiles/{x}.png').convert_alpha()
-        tile_image=pygame.image.load(f'assets/level2_obj_tile/{x}.png').convert_alpha()
-        #tile_image=pygame.transform.scale(tile_image,(cons.TILE_SIZE,cons.TILE_SIZE))
-        obj_tile_list.append(tile_image)
-
-else:
-     for x in range(41):
-        #tile_image=pygame.image.load(f'assets/tiles/{x}.png').convert_alpha()
-        tile_image=pygame.image.load(f'assets/level3_obj_tile/{x+1}.png').convert_alpha()
-        #tile_image=pygame.transform.scale(tile_image,(cons.TILE_SIZE,cons.TILE_SIZE))
-        obj_tile_list.append(tile_image)
-
-
-
-
-#WORLD(BACK GROUND)
-world_data=[]
-#column*row
-for row in range (cons.ROWS):
-   r=[-1]*cons.COLUMN
-   world_data.append(r)
-#load in level data and create a world
-if is_level1:
-    with open('levels/l1/level1_background.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                world_data[y][x]=int(tile)
-elif is_level2:
-   with open('levels/l2/level2_background.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                world_data[y][x]=int(tile)
-else:
-    with open('levels/l3/level3_background.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                world_data[y][x]=int(tile)
-
-layer_data=[]
-for row in range (cons.ROWS):
-   r=[-1]*cons.COLUMN
-   layer_data.append(r)
-with open('levels/l2/level2_layer.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                layer_data[y][x]=int(tile)
-
-
-
-#COLLISION TILES
-platform_data = []
-#column*row
-for row in range (cons.ROWS):
-   r=[-1]*cons.COLUMN
-   platform_data.append(r)
-if is_level1:
-    #load in level data and create a world
-    with open('levels/l1/level1_Platform.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                platform_data[y][x]=int(tile)
-elif is_level2:
-       #load in level data and create a world
-    with open('levels/l2/level2_Platform.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                platform_data[y][x]=int(tile)
-else:
-    with open('levels/l3/level3_Platform.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                platform_data[y][x]=int(tile)
-
-#OBJECT TILES
-object_data = []
-#column*row
-for row in range (cons.ROWS):
-   r=[-1]*cons.COLUMN
-   object_data.append(r)
-if is_level1:
-    #load in level data and create a world
-    with open('levels/l1/level1_Objects.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                object_data[y][x]=int(tile)
-elif is_level2:
-       #load in level data and create a world
-    with open('levels/l2/level2_Objects.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                object_data[y][x]=int(tile)
-else:
-     with open('levels/l3/level3_Objects.csv', newline='') as csvfile:
-        #delimiter is what sperate it
-        reader= csv.reader(csvfile,delimiter=',')
-        for y,row in enumerate(reader):
-            for x,tile in enumerate(row):
-                object_data[y][x]=int(tile)
-
-
-
-# #LOAD JSON
-# object_images={}
-# with open ('assets/object/obj.tsj','r',encoding='utf-8') as f:
-#     object_data=json.load(f)
-# for img in object_data['tiles']:
-#     tile_id=img['id']
-#     img_path=img['image']
-#     full_path=os.path.normpath(os.path.join(tileset_dir,img_path))
-#     image=pygame.image.load(full_path).convert_alpha()
-#     object_images[tile_id]=image
-    
-
-
-
-#create world
-world=World()
-world.process_data(world_data,layer_data,object_data,platform_data,tile_list,obj_tile_list,is_level2,is_level1)
-
-spawn_tile = []
-tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
-for tile in world.obstacle_tiles:
-    cx = tile.centerx
-    top = tile.top
-    left1  = (cx - cons.TILE_SIZE, top) in tile_set
-    right1 = (cx + cons.TILE_SIZE, top) in tile_set
-    if left1 or right1:
-        spawn_tile.append((tile.centerx, tile.top - cons.ENEMY_HEIGHT))
-
-Tornado_spawn_tile=[]
-tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
-for tile in world.obstacle_tiles:
-    cx = tile.centerx
-    top = tile.top
-    left1  = (cx - cons.TILE_SIZE, top) in tile_set
-    left2  = (cx - cons.TILE_SIZE*2, top) in tile_set
-    left3  = (cx - cons.TILE_SIZE*3, top) in tile_set
-    right1 = (cx + cons.TILE_SIZE, top) in tile_set
-    right2 = (cx + cons.TILE_SIZE*2, top) in tile_set
-    right3 = (cx + cons.TILE_SIZE*3, top) in tile_set
-
-    right_ok=right1 and right2 and right3
-    left_ok=left1 and left2 and left3
-    if right_ok or left_ok:
-        Tornado_spawn_tile.append((tile.centerx, tile.top))
-
-#create enemy
-#enemy=Character(200,700,100,animation.Demon1_animations,'1')
-#boss=Character(600,700,100,animation.Demon3_animations,'Boss')
+world = level_data["world"]
+world_data = level_data["world_data"]
+layer_data = level_data["layer_data"]
+object_data = level_data["object_data"]
+platform_data = level_data["platform_data"]
+tile_list = level_data["tile_list"]
+obj_tile_list = level_data["obj_tile_list"]
+spawn_tile = level_data["spawn_tile"]
+Tornado_spawn_tile = level_data["tornado_spawn_tile"]
 
 #create enemy list
 enemy_list=[]
@@ -368,12 +77,7 @@ enemy_list=[]
 #enemy_list.append(boss)
 
 
-#create weapon
-#bow= Weapon(bow_image,arrow_image,None,False)
 
-
-#cake=Item(200,330,'0',cake_img,None,False)
-coffee=Item(32,400,'1',coffee_img,None,False)
 money_icon=Item(30,25,'0',money_icon_img,None,True)
 #score_cake=Item(cons.SCREEN_WIDTH-220,25,'0',cake_img,None,True)
 Rin=All(450,700,'Rin',animation.Rin_animations)
@@ -382,7 +86,7 @@ Fuma=All(450,700,'Fuma',animation.Fuma_animations)
 Ares=All(450,700,'Ares',animation.Ares_animations)
 #default
 alliance=Rin
-has_alliance=False
+
 #create sprite groups
 alliance_group=pygame.sprite.Group()
 arrow_group=pygame.sprite.Group()
@@ -402,8 +106,6 @@ fire_ball_group.add()
 intro_fade=UI.ScreenFade(1,(0,0,0),7)
 death_fade=UI.ScreenFade(2,(0,0,0),7)
 
-#create text
-vertical_text=UI.Text(452,130,'未\n来\nの\n世\n界',JAPA_font,cons.WHITE)
 
 
 #Level_text=UI.Text(10,15,f'Level:{level}',font,cons.PINK)
@@ -413,33 +115,27 @@ start_button=Button(cons.SCREEN_WIDTH//2-145,cons.SCREEN_HEIGHT//2-150,start_img
 resume_button=Button(cons.SCREEN_WIDTH//2-145,cons.SCREEN_HEIGHT//2-150,resume_img)
 exit_button=Button(cons.SCREEN_WIDTH//2-145,cons.SCREEN_HEIGHT//2+50,exit_img)
 #main game loop
-game_run=True
+
 
 
 def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group, item_group,
                 world_data, object_data, platform_data, tile_list, obj_tile_list):
     
-    global show_dialog_timer
-    global is_dialog_active
-    global is_purchased
-    global current_wave
-    global wave_active
-    global enemy_left
-    global is_level1
-    global is_level2
-    global is_level3
-    global finish_anime
-    global current_level
-    global is_boss_spawned
-    global phase2_triggered
-    global has_alliance
-    finish_anime=cons.DEATH_PLAY
-    show_dialog_timer=3000
-    is_purchased=False
-    is_dialog_active=False
-    enemy_left=0
-    current_wave = 0
-    wave_active = False
+    
+    global spawn_tile, Tornado_spawn_tile, layer_data
+    
+    state.finish_anime=cons.DEATH_PLAY
+    state.show_dialog_timer=3000
+    state.item_spawn_cooldown = random.randint(3000, 5000)
+
+    state.is_purchased=False
+    state.is_shopmenu = False
+    state.not_purchased = False
+
+    state.is_dialog_active=False
+    state.wants_close_dialog = False
+    state.dialog_message = ""
+
     enemy_list.clear()
     fireballs.empty()
     charge.empty()
@@ -448,11 +144,15 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     item_group.add(money_icon)
     Fire_hazard_group.empty()
     Tornado_group.empty()
-    is_boss_spawned = False
-    phase2_triggered = False
+
+    state.reset_boss_state()
+    state.reset_wave_state()
+
+
     #reset alliance
     alliance_group.empty()
-    if has_alliance:
+  
+    if state.has_alliance:
         alliance.rect.center = (450, 700)
         alliance.health = 100
         alliance.alive = True
@@ -463,103 +163,33 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
         alliance.dy = 0
         alliance_group.empty()
         alliance_group.add(alliance)
-    
 
 
+    # reload level world
+    level_data = load_level_world(state.current_level)
+    new_world = level_data["world"]
 
-    
- 
+    # copy new world data into the existing world object
+    world.__dict__.update(new_world.__dict__)
 
+    world_data[:] = level_data["world_data"]
+    object_data[:] = level_data["object_data"]
+    platform_data[:] = level_data["platform_data"]
+    tile_list[:] = level_data["tile_list"]
+    obj_tile_list[:] = level_data["obj_tile_list"]
 
+   
+    layer_data = level_data["layer_data"]
+    spawn_tile = level_data["spawn_tile"]
+    Tornado_spawn_tile = level_data["tornado_spawn_tile"]
 
-    # 重新读CSV
-    def read_csv(path):
-        data = [[-1] * cons.COLUMN for _ in range(cons.ROWS)]
-        with open(path, newline='') as f:
-            for y, row in enumerate(csv.reader(f)):
-                for x, tile in enumerate(row):
-                    data[y][x] = int(tile)
-        return data
-
-    if is_level1:
-        new_world_data    = read_csv('levels/l1/level1_background.csv')
-        new_platform_data = read_csv('levels/l1/level1_Platform.csv')
-        new_object_data   = read_csv('levels/l1/level1_Objects.csv')
-        new_layer_data = [[-1] * cons.COLUMN for _ in range(cons.ROWS)] #empty
-    elif is_level2:
-        new_world_data    = read_csv('levels/l2/level2_background.csv')
-        new_platform_data = read_csv('levels/l2/level2_Platform.csv')
-        new_object_data   = read_csv('levels/l2/level2_Objects.csv')
-        new_layer_data    = read_csv('levels/l2/level2_layer.csv')
-    else:
-        new_world_data    = read_csv('levels/l3/level3_background.csv')
-        new_platform_data = read_csv('levels/l3/level3_Platform.csv')
-        new_object_data   = read_csv('levels/l3/level3_Objects.csv')
-        new_layer_data = [[-1] * cons.COLUMN for _ in range(cons.ROWS)]
-
-    # 重新加载tile图片
-    tile_list.clear()
-    obj_tile_list.clear()
-    if is_level1:
-        for x in range(cons.TILE_TYPES):
-            tile_list.append(pygame.image.load(f'assets/level1_background_tile/Tile_{x+1:02d}.png').convert_alpha())
-        for x in range(26):
-            obj_tile_list.append(pygame.image.load(f'assets/level1_obj_tile/{x+1}.png').convert_alpha())
-    elif is_level2:
-        for x in range(cons.TILE_TYPES):
-            tile_list.append(pygame.image.load(f'assets/level2_background_tile/Tiles_{x+1:02d}.png').convert_alpha())
-        for x in range(26):
-            obj_tile_list.append(pygame.image.load(f'assets/level2_obj_tile/{x}.png').convert_alpha())
-    else:
-        for x in range(cons.TILE_TYPES):
-            tile_list.append(pygame.image.load(f'assets/level3_background_tile/Tile_{x+1:02d}.png').convert_alpha())
-        for x in range(41):
-            obj_tile_list.append(pygame.image.load(f'assets/level3_obj_tile/{x+1}.png').convert_alpha())
-
-    # 重建世界
-    world.map_tiles.clear()
-    world.object_tiles.clear()
-    world.obstacle_tiles.clear()
-
-
-    world.process_data(new_world_data, new_layer_data, new_object_data, new_platform_data,
-                       tile_list, obj_tile_list, is_level2, is_level1)
-    
     world.scroll_x = 0
     world.scroll_y = 0
-
-    # enemy spwan
-    global spawn_tile
-    spawn_tile = []
-    tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
-    for tile in world.obstacle_tiles:
-        cx = tile.centerx
-        top = tile.top
-        left1  = (cx - cons.TILE_SIZE, top) in tile_set
-        right1 = (cx + cons.TILE_SIZE, top) in tile_set
-        if left1 or right1:
-            spawn_tile.append((tile.centerx, tile.top - cons.ENEMY_HEIGHT))
     
-    #fire and tornado spawn
-    global Tornado_spawn_tile
-    Tornado_spawn_tile=[]
-    tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
-    for tile in world.obstacle_tiles:
-        cx = tile.centerx
-        top = tile.top
-        left1  = (cx - cons.TILE_SIZE, top) in tile_set
-        left2  = (cx - cons.TILE_SIZE*2, top) in tile_set
-        left3  = (cx - cons.TILE_SIZE*3, top) in tile_set
-        right1 = (cx + cons.TILE_SIZE, top) in tile_set
-        right2 = (cx + cons.TILE_SIZE*2, top) in tile_set
-        right3 = (cx + cons.TILE_SIZE*3, top) in tile_set
 
-        right_ok=right1 and right2 and right3
-        left_ok=left1 and left2 and left3
-        if right_ok or left_ok:
-            Tornado_spawn_tile.append((tile.centerx, tile.top))
+ 
 
-    # 重置玩家
+    # reset player
     player.rect.center = (200, 700)
     player.vel_y = 0
     player.health = 100
@@ -568,19 +198,12 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     player.stunned = False
     player.player_state = 'Idle'
     player.score = 0
+    
+    
 
    
 def reset_to_boss_checkpoint(world, player, enemy_list):
-    global current_wave
-    global wave_active
-    global is_boss_spawned
-    global phase2_triggered
-    global finish_anime
-    global fire_spawn_timer
-    global turnado_spawn_timer
-    global is_dialog_active
-
-    # 先清空战斗内容
+    # clear group and list
     enemy_list.clear()
     fire_ball_group.empty()
     charge_group.empty()
@@ -589,7 +212,7 @@ def reset_to_boss_checkpoint(world, player, enemy_list):
     Fire_hazard_group.empty()
     dagame_Text_group.empty()
 
-    # 重置玩家
+    # reset player
     player.rect.center = (200, 700)
     player.vel_y = 0
     player.health = 100
@@ -599,171 +222,206 @@ def reset_to_boss_checkpoint(world, player, enemy_list):
     player.is_freezed = False
     player.player_state = 'Idle'
 
-    # Boss 战不带 alliance
+    #empty alliance
     alliance_group.empty()
 
-    # 直接跳到 L3 waves 结束后的状态
-    current_wave = len(L3_WAVES)
-    wave_active = True
-    is_boss_spawned = True
-    phase2_triggered = False
-    finish_anime = cons.DEATH_PLAY
+    # skip to L3 after boss spawned
+    state.current_wave = len(L3_WAVES)
+    state.wave_active = True
+    state.is_boss_spawned = True
+    state.phase2_triggered = False
 
-    fire_spawn_timer = 1200
-    turnado_spawn_timer = 9000
+    state.finish_anime = cons.DEATH_PLAY
 
-    # 重新生成 Boss
+    state.fire_spawn_timer = 1200
+    state.turnado_spawn_timer = 9000
+
+    # respawn boss
     sx, sy = random.choice(spawn_tile)
     x = sx + world.scroll_x
     y = sy + world.scroll_y
 
-    boss = Character(x, y, 650, animation.Boss_animations, 'Boss')
+    boss = Enemy(x, y, 650, animation.Boss_animations, 'Boss')
     boss.max_health_boss = 650
     enemy_list.append(boss)
 
-    # 可选：重新显示 Boss dialog
-    is_dialog_active = True
+
+
+  
+    
+    
     
 
-while choosing:
+while state.choosing:
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RETURN and player_name:
-                choosing = False
+            if event.key == pygame.K_RETURN and state.player_name:
+                state.choosing = False
             elif event.key == pygame.K_BACKSPACE:
-                player_name = player_name[:-1]
+                state.player_name = state.player_name[:-1]
             elif event.key == pygame.K_LEFT:
-                selected_gender = 'Male'
+                state.selected_gender = 'Male'
             elif event.key == pygame.K_RIGHT:
-                selected_gender = 'Female'
+                state.selected_gender = 'Female'
             else:
-                if len(player_name) < 12:  
-                    player_name += event.unicode
+                if len(state.player_name) < 12:  
+                    state.player_name += event.unicode
     
     #create player
-    if selected_gender=='Female':
-        player=Character(200,700,100,animation.School_girl_animations,'0')
+    if state.selected_gender=='Female':
+        player=Player(200,700,100,animation.School_girl_animations)
     else:
-        player=Character(200,700,100,animation.School_boy1_animations,'0')
+        player=Player(200,700,100,animation.School_boy1_animations,)
     screen.fill(cons.BACK_GROUND)
-    UI.draw_choose_menu(screen, font, player_name, selected_gender, game_name,True)
-    name_text=UI.Text(300,15,player_name,font,cons.PURPLE)
+    UI.draw_choose_menu(screen, font, state.player_name, state.selected_gender, game_name,True)
+    name_text=UI.Text(300,15,state.player_name,font,cons.PURPLE)
     pygame.display.update()
     
-    
-while game_run:
+def create_enemy_from_spawn(anim, ctype, world, spawn_tile, health=100):
+    sx, sy = random.choice(spawn_tile)
+
+   
+    x = sx + world.scroll_x
+    y = sy + world.scroll_y
+
+    return Enemy(x, y, health, anim, ctype)
+
+
+def get_l1_enemy_health(ctype):
+    if ctype == '1':
+        return 100
+    elif ctype == '2':
+        return 90
+    elif ctype == '3':
+        return 130
+    elif ctype == '4':
+        return 150
+    elif ctype == '5':
+        return 120
+
+    return 100
+
+def spawn_wave(waves, current_wave, world, spawn_tile, enemy_list, use_l1_health=False):
+    for anim, ctype, count in waves[current_wave]:
+        for _ in range(count):
+            if use_l1_health:
+                health = get_l1_enemy_health(ctype)
+                enemy = create_enemy_from_spawn(anim, ctype, world, spawn_tile, health)
+            else:
+                enemy = create_enemy_from_spawn(anim, ctype, world, spawn_tile)
+
+            enemy_list.append(enemy)
+
+
+
+
+while state.game_run:
     
     #control frame rate
     delta_time=clock.tick(cons.FPS)
 
-    if start_game==False:
+    if state.start_game==False:
         screen.fill((0,0,0))
         if (start_button.draw(screen)):
-            start_game=True
+            state.start_game=True
             #播放开场淡入动画
-            start_intro=True
+            state.start_intro=True
         #it become true only when hit the button, so we call draw method here to check the collision
         if(exit_button.draw(screen)):
-            game_run=False
-    elif is_shopmenu==True:
-        if victory_timer>0:
+            state.game_run=False
+    elif state.is_shopmenu==True:
+        if state.victory_timer>0:
             UI.draw_victory(screen,font)
-            victory_timer-=delta_time
-        if victory_timer<=0:
+            state.victory_timer-=delta_time
+        if state.victory_timer<=0:
                 screen.fill((0,0,0))
-                UI.draw_shop_menu(screen, smaller_font, player.score,current_level)
-                if is_purchased==True and alliance.name== 'Rin' :
+                UI.draw_shop_menu(screen, smaller_font, player.score,state.current_level)
+                if state.is_purchased==True and alliance.name== 'Rin' :
                      player.score-=cons.Fujiwara_Rin
                      alliance_group.empty()
-                     is_shopmenu=False
-                     has_alliance=True
+                     state.is_shopmenu=False
+                     state.has_alliance=True
                      alliance=Rin
-                elif is_purchased==True and alliance.name== 'Vesper' :
+                elif state.is_purchased==True and alliance.name== 'Vesper' :
                      player.score-=cons.Vesper
                      alliance_group.empty()
-                     is_shopmenu=False
+                     state.is_shopmenu=False
                      alliance=Vesper
-                     has_alliance=True
-                elif is_purchased==True and alliance.name== 'Fuma' :
+                     state.has_alliance=True
+                elif state.is_purchased==True and alliance.name== 'Fuma' :
                      player.score-=cons.Himura
                      alliance_group.empty()
-                     is_shopmenu=False
+                     state.is_shopmenu=False
                      alliance=Fuma
-                     has_alliance=True
-                elif is_purchased==True and alliance.name=='Ares' :
+                     state.has_alliance=True
+                elif state.is_purchased==True and alliance.name=='Ares' :
                      player.score-=cons.Ares
                      alliance_group.empty()
-                     is_shopmenu=False
+                     state.is_shopmenu=False
                      alliance=Ares
-                     has_alliance=True
+                     state.has_alliance=True
                         #check if the level is complete'
-                elif not_purchased:
-                    is_shopmenu=False
+                elif state.not_purchased:
+                    state.is_shopmenu=False
                 
                 alliance_group.add(alliance)
 
-                if level_complete_shop and not is_shopmenu:
-                        level_complete_shop=False
-                        opening_intro=True
-                        victory_timer=cons.VICTORY_TIMER
+                if state.level_complete_shop and not state.is_shopmenu:
+                        state.level_complete_shop=False
+                        state.opening_intro=True
+                        state.victory_timer=cons.VICTORY_TIMER
                         
 
-    elif is_dialog_active:
-       if is_boss_spawned==True and current_level=='3':
+    elif state.is_dialog_active:
+       if state.is_boss_spawned==True and state.current_level=='3':
            UI.draw_dialog(screen, font, alliance, f'The final BOSS has arrived! You must fight alone, {alliance.name} will not able to help you now.. ')
-       elif show_goal_dialog_l1 and current_level=='1':
+       elif state.show_goal_dialog_l1 and state.current_level=='1':
            UI.draw_dialog(screen, font, alliance, f'Goal: Eliminate all enemies and obtain {cons.L1_GOAL}. Remember you need to find them if you can\'t see them...')
-       elif show_goal_dialog_l2 and current_level=='2':
+       elif state.show_goal_dialog_l2 and state.current_level=='2':
            UI.draw_dialog(screen, font, alliance, f'Goal: Eliminate all enemies and obtain {cons.L2_GOAL}.')
-       elif show_goal_dialog_l3 and current_level=='3':
+       elif state.show_goal_dialog_l3 and state.current_level=='3':
            UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies.')
        else:
-           UI.draw_dialog(screen,font,alliance,dialog_message)
-       if wants_close_dialog:
-          is_dialog_active=False
-          wants_close_dialog=False
+           UI.draw_dialog(screen,font,alliance,state.dialog_message)
+       if state.wants_close_dialog:
+          state.is_dialog_active=False
+          state.wants_close_dialog=False
 
-    elif opening_intro:
+    elif state.opening_intro:
          #if start intro=true fade screen
-                if opening_intro_timer>0:
-                  opening_intro_timer-=delta_time
+                if state.opening_intro_timer>0:
+                  state.opening_intro_timer-=delta_time
                   UI.draw_text_screen(screen,font,'Loading...')
-                  if opening_intro_timer<=0:
-                        opening_intro=False
-                        opening_intro_timer=cons.INTRO_TIMER
-                        if current_level=='1':
-                            is_level1=False 
-                            is_level2=True
-                            current_level='2'  
+                  if state.opening_intro_timer<=0:
+                        state.opening_intro=False
+                        state.opening_intro_timer=cons.INTRO_TIMER
+                        if state.current_level=='1':
+                            state.set_level('2')
                             reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
-                        elif current_level=='2':
-                            is_level2=False
-                            is_level3=True
-                            current_level='3'
+                        elif state.current_level=='2':
+                            state.set_level('3')
                             reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list) 
-    elif game_over==True:
-        if game_over_timer>0:
-            game_over_timer-=delta_time
+    elif state.game_over==True:
+        if state.game_over_timer>0:
+            state.game_over_timer-=delta_time
             UI.draw_text_screen(screen,font,'You won! good job.')
         else:
             screen.fill((0,0,0))
             if restart_button.draw(screen):
-                game_over = False
-                game_over_timer = cons.GAME_OVER_TIMER
-                opening_intro = False
-                is_level1 = True
-                is_level2 = False
-                is_level3 = False
-                current_level = '1'
-                current_wave = 0
-                wave_active = False
-                is_boss_spawned = False
-                phase2_triggered = False
-                show_goal_dialog_l1 = False
-                show_goal_dialog_l2 = False
-                show_goal_dialog_l3 = False
-                show_dialog_timer = 3000
-                level_complete_shop = False
+                state.game_over = False
+                state.game_over_timer = cons.GAME_OVER_TIMER
+                state.opening_intro = False
+                state.set_level('1')
+                state.reset_wave_state()
+                state.reset_boss_state()
+                state.show_goal_dialog_l1 = False
+                state.show_goal_dialog_l2 = False
+                state.show_goal_dialog_l3 = False
+                state.is_dialog_active = False
+                state.wants_close_dialog = False
+                state.dialog_message = ""
+                state.show_dialog_timer = 3000
+                state.level_complete_shop = False
                 enemy_list.clear()
                 if not alliance_group.empty():
                  alliance_group.empty()
@@ -778,45 +436,30 @@ while game_run:
    
                 
     else:
-      if pause_game==True:
+      if state.pause_game==True:
                 screen.fill((0,0,0))
                 if(resume_button.draw(screen)):
-                    pause_game=False
+                    state.pause_game=False
                 if(exit_button.draw(screen)):
-                    game_run=False
+                    state.game_run=False
       else:
-          
-         
-         
+         state.show_dialog_timer-=delta_time
+         if state.show_dialog_timer<0:
+            if not state.show_goal_dialog_l1 and not state.start_intro and state.is_level1 :
+              state.is_dialog_active=True
+              state.show_goal_dialog_l1=True
+            elif not state.show_goal_dialog_l2 and not state.opening_intro and state.is_level2:
+              state.is_dialog_active=True
+              state.show_goal_dialog_l2=True
+            elif not state.show_goal_dialog_l3 and state.is_level3:
+              state.is_dialog_active=True
+              state.show_goal_dialog_l3=True
 
 
-         show_dialog_timer-=delta_time
-         if show_dialog_timer<0:
-            if not show_goal_dialog_l1 and not start_intro and is_level1 :
-              is_dialog_active=True
-              show_goal_dialog_l1=True
-            elif not show_goal_dialog_l2 and not opening_intro and is_level2:
-              is_dialog_active=True
-              show_goal_dialog_l2=True
-            elif not show_goal_dialog_l3 and is_level3:
-              is_dialog_active=True
-              show_goal_dialog_l3=True
-
-        #  surviving_time+=delta_time
-        #  total_sec=surviving_time//1000
-        #  minutes = total_sec // 60
-        #  seconds = total_sec % 60
-        #  time_text = f"{minutes:02d}:{seconds:02d}"
         
          screen.blit(bg_img,(0,0))
          screen.blit(bg_img_building,(0,0))
-         #screen.blit(object_images[0],(300,400))
 
-         #screen.fill(cons.BACK_GROUND)
-    
-         #draw grid
-         #UI.draw_grid(screen)
-    
          #world 
          world.draw(screen)
 
@@ -824,14 +467,14 @@ while game_run:
          if player.alive:
                 
              #"上一帧是冻结的，但这一帧已经解冻了"的瞬间检测
-             if was_freezed and not player.is_freezed:
+             if state.was_freezed and not player.is_freezed:
                     key = pygame.key.get_pressed()
                     moving_left = key[pygame.K_a] #读取实际按键状态
                     moving_right = key[pygame.K_d]
                     is_attacking = False #重新设置乘false，重新触发，不要遗留被冻之前的值
                     is_dashing = False
                     is_jumping = False
-             was_freezed=player.is_freezed
+             state.was_freezed=player.is_freezed
              if player.is_freezed:
                     moving_left = False
                     moving_right = False
@@ -845,10 +488,7 @@ while game_run:
                  dx = cons.SPEED
              if moving_left==True:
                  dx = -cons.SPEED
-            #if moving_up==True:
-                #dy = -cons.SPEED
-            #if moving_down==True:
-                #dy = cons.SPEED
+
    
        
         #apply screen scroll
@@ -881,197 +521,131 @@ while game_run:
              world.scroll_x+=screen_scroll[0]
              world.scroll_y+=screen_scroll[1]
          
-        
-            # # #enemy spawn
-            #  spawn_tile=[]
-            #  tile_set = {(tile.centerx, tile.top) for tile in world.obstacle_tiles}
-            #  for tile in world.obstacle_tiles:
-            #        cx = tile.centerx
-            #        top = tile.top
-            #        left1  = (cx - cons.TILE_SIZE, top) in tile_set
-            #        right1 = (cx + cons.TILE_SIZE, top) in tile_set
 
-            #  #append the obstacle tiles x and y instead of rect, make it more precise
-            #        if left1 or right1:
-            #         spawn_tile.append((tile.centerx,tile.top-cons.ENEMY_HEIGHT))
-        
-            #  x,y=random.choice(spawn_tile)
        
 
         
              
 
             
-             if is_level1:
+             if state.is_level1:
                 #start it if wave is not active, it is active but player clean all the enemies
-                if not wave_active or (wave_active and len(enemy_list)==0):
-                    if wave_active:
-                        current_wave+=1
+                if not state.wave_active or (state.wave_active and len(enemy_list)==0):
+                    if state.wave_active:
+                        state.current_wave+=1
                     #check if there is another wave
-                    if current_wave<len(L1_WAVES):
-                        wave_active=True
+                    if state.current_wave<len(L1_WAVES):
+                        state.wave_active=True
                         #spwan the enemy for this wave
-                        for(anim,ctype,count) in L1_WAVES[current_wave]:
-                            for _ in range(count): #不会用到i就用_
-                                sx,sy=random.choice(spawn_tile)
-                                #因为spawn tile的位置已改变， 玩家移动过了，scroll 不是0，原始坐标已经偏离屏幕，所以刷在看不到的地方
-                                x=sx+world.scroll_x
-                                y=sy+world.scroll_y
-                                if ctype=='1':
-                                 enemy=Character(x,y,100,anim,ctype)
-                                elif ctype=='2':
-                                 enemy=Character(x,y,90,anim,ctype)
-                                elif ctype=='3':
-                                 enemy=Character(x,y,130,anim,ctype)
-                                elif ctype=='4':
-                                 enemy=Character(x,y,150,anim,ctype)
-                                elif ctype=='5':
-                                 enemy=Character(x,y,120,anim,ctype)
-
-                                enemy_list.append(enemy)
-
-                           
+                        spawn_wave(
+                                        L1_WAVES,
+                                        state.current_wave,
+                                        world,
+                                        spawn_tile,
+                                        enemy_list,
+                                        use_l1_health=True
+                                    )
+                            
                     else:
                         #if this is the last wave,deactivate the wave
-                        wave_active=False
-                        if not level_complete_shop and player.score>=cons.L1_GOAL:
-                            level_complete_shop=True
-                            is_shopmenu=True
-             if is_level2:
-                    current_level='2'
+                        state.wave_active=False
+                        if not state.level_complete_shop and player.score>=cons.L1_GOAL:
+                            state.level_complete_shop=True
+                            state.is_shopmenu=True
+             if state.is_level2:
                     #start it if wave is not active, it is active but player clean all the enemies
-                    if not wave_active or (wave_active and len(enemy_list)==0):
-                        if wave_active:
-                            current_wave+=1
+                    if not state.wave_active or (state.wave_active and len(enemy_list)==0):
+                        if state.wave_active:
+                            state.current_wave+=1
                        
-                        if current_wave<len(L2_WAVES):
-                            wave_active=True
-                            for(anim,ctype,count) in L2_WAVES[current_wave]:
-                                for _ in range(count): 
-                                    sx,sy=random.choice(spawn_tile)
-                                    x=sx+world.scroll_x
-                                    y=sy+world.scroll_y
-                                    enemy=Character(x,y,100,anim,ctype)
-                                    enemy_list.append(enemy)
-                               
+                        if state.current_wave<len(L2_WAVES):
+                            state.wave_active=True
+                             # spawn enemies for this wave
+                            spawn_wave(
+                                L2_WAVES,
+                                state.current_wave,
+                                world,
+                                spawn_tile,
+                                enemy_list
+                            )
+                                            
                         else:
-                            wave_active=False
-                            if not level_complete_shop and player.score>=cons.L2_GOAL:
-                                level_complete_shop=True
-                                is_shopmenu=True
+                            state.wave_active=False
+                            if not state.level_complete_shop and player.score>=cons.L2_GOAL:
+                                state.level_complete_shop=True
+                                state.is_shopmenu=True
              
-             if is_level3:
-                    current_level='3'
-                    if not wave_active or (wave_active and len(enemy_list)==0):
-                        if wave_active:
-                            current_wave+=1
+             if state.is_level3:
+                    if not state.wave_active or (state.wave_active and len(enemy_list)==0):
+                        if state.wave_active:
+                            state.current_wave+=1
                        
-                        if current_wave<len(L3_WAVES):
-                            wave_active=True
-                            for(anim,ctype,count) in L3_WAVES[current_wave]:
-                                for _ in range(count): 
-                                    sx,sy=random.choice(spawn_tile)
-                                    x=sx+world.scroll_x
-                                    y=sy+world.scroll_y
-                                    enemy=Character(x,y,100,anim,ctype)
-                                    enemy_list.append(enemy)
+                        if state.current_wave<len(L3_WAVES):
+                            state.wave_active=True
+                              # spawn enemies for this wave
+                            spawn_wave(
+                                L3_WAVES,
+                                state.current_wave,
+                                world,
+                                spawn_tile,
+                                enemy_list
+                            )
+                                        
+
                                 
                         else:
-                            if not is_boss_spawned:
-                                is_boss_spawned=True
-                                is_dialog_active=True
-                                wave_active=True
+                            if not state.is_boss_spawned:
+                                state.is_boss_spawned=True
+                                state.is_dialog_active=True
+                                state.wave_active=True
                                 for(anim,ctype,count) in L3_BOSS[0]:
-                                    for _ in range(count): 
-                                        sx,sy=random.choice(spawn_tile)
-                                        x=sx+world.scroll_x
-                                        y=sy+world.scroll_y
-                                        boss=Character(x,y,100,anim,ctype)
-                                        enemy_list.append(boss)
-                                        alliance_group.empty()
+                                    boss = create_enemy_from_spawn(
+                                        anim,
+                                        ctype,
+                                        world,
+                                        spawn_tile,
+                                        health=650
+                                    )
+                                    boss.max_health_boss=650
+                                    enemy_list.append(boss)
+ 
+                                alliance_group.empty()
                                 
                                
                         
-                    if is_boss_spawned and len(enemy_list)>0:
+                    if state.is_boss_spawned and len(enemy_list)>0:
                                         
                                         boss = enemy_list[0]  
                                     #if boss.health <= 50 and not phase2_triggered:
                                         
-                                        phase2_triggered = True
-                                        fire_spawn_timer-=delta_time
-                                        turnado_spawn_timer-=delta_time
-                                        if  boss.health<=50:
-                                            if turnado_spawn_timer<=0:
+                                        state.phase2_triggered = True
+                                        state.fire_spawn_timer-=delta_time
+                                        state.turnado_spawn_timer-=delta_time
+                                        if  boss.health <= boss.max_health_boss * 0.5:
+                                            if state.turnado_spawn_timer<=0:
                                                     tornado_spawn_x=random.randint(200,800)
                                                     tornado = Tornado(tornado_spawn_x, 350, animation.wind_ball_animation)
                                                     Tornado_group.add(tornado)
-                                                    turnado_spawn_timer=10000
-                                            if fire_spawn_timer<=0:
+                                                    state.turnado_spawn_timer=10000
+                                            if state.fire_spawn_timer<=0:
                                                     sx1, sy1 = random.choice(Tornado_spawn_tile)
                                                     x1 = sx1 + world.scroll_x
                                                     y1 = sy1 + world.scroll_y
                                                     fire = FireHazard(x1, y1, animation.Fire_animation)
                                                     Fire_hazard_group.add(fire)
-                                                    fire_spawn_timer=800
+                                                    state.fire_spawn_timer=800
                                         if boss.alive==False:
-                                                finish_anime-=delta_time
-                                                if finish_anime<=0:                   
-                                                 game_over=True
+                                                state.finish_anime-=delta_time
+                                                if state.finish_anime<=0:                   
+                                                 state.game_over=True
                                                   
                                                
                                                 
-                        
-                                    
-                                        
-                               
-
-
-                               
-                           
-
-
-                # if enemy1_cooldown<=0 and len(enemy_list)<3 :
-                #     enemy=Character(x,y,100,animation.Demon1_animations,'1')
-                #     enemy_list.append(enemy)
-                #     enemy1_counter+=1
-                #     enemy1_cooldown=random.randint(3000,5000)
-                
-                # #enro
-                # if enemy1_counter>=2 and enemy4_cooldown<=0:
-                #   enemy4=Character(x,y,100,animation.Demon4_animations,'4')
-                #   enemy_list.append(enemy4)
-                #   enemy4_cooldown=random.randint(5000,10000)
-
-
-            #enemy fireball
-             #if enemy1_counter>=2 and enemy2_cooldown<=0:
-                 #enemy2=Character(x,y,150,animation.Demon2_animations,'2')
-                 #enemy_list.append(enemy2)
-                 #enemy2_counter+=1
-                 #enemy2_cooldown=random.randint(5000,10000)
-                 #enemy1_on=False
+ 
             
-            #charge
-             #if enemy1_counter>=2 and enemy3_cooldown<=0:
-                 #enemy3=Character(x,y,150,animation.Demon3_animations,'3')
-                 #enemy_list.append(enemy3)
-                 #enemy3_cooldown=random.randint(10000,20000)
-            
-               
-             #if enemy1_counter>=2 and enemy5_cooldown<=0:
-                 #enemy5=Character(x,y,100,animation.Demon5_animations,'5')
-                 #enemy_list.append(enemy5)
-                 #enemy5_cooldown=random.randint(3000,5000)
-
-
-               
-                 
-                 
-             
-            
-             item_spawn_cooldown-=delta_time
-             if current_level=='1' or current_level=='2':
-                if item_spawn_cooldown<=0:
+             state.item_spawn_cooldown-=delta_time
+             if state.current_level=='1' or state.current_level=='2':
+                if state.item_spawn_cooldown<=0:
                     sx,sy=random.choice(spawn_tile)
                     x=sx+world.scroll_x
                     y=sy+world.scroll_y
@@ -1079,19 +653,20 @@ while game_run:
                     if len(item_group)<=4:
                         item_group.add(money)
 
-                    item_spawn_cooldown=random.randint(3000,5000)
-             if not alliance==None: 
-                if alliance.alive:
-                    potion_spawned=False
+                    state.item_spawn_cooldown=random.randint(5000,7000)
 
-                if alliance.alive==False:
-                 if not potion_spawned:
+             
+             if player.health>=40:
+                    state.potion_spawned=False
+
+             else :
+                 if not state.potion_spawned:
                         sx,sy=random.choice(spawn_tile)
                         x=sx+world.scroll_x
                         y=sy+world.scroll_y
                         potion=Item(x,y+40,'2',potion_img,None,False)
                         item_group.add(potion)
-                        potion_spawned=True
+                        state.potion_spawned=True
             
                     
              if is_attacking==True and not player.is_freezed:
@@ -1174,49 +749,35 @@ while game_run:
     #draw player health
          UI.draw_health_bar(screen,player,screen_scroll)
          UI.draw_square(screen)
-    #weapon
-    # bow.draw(screen)
-    # arrow=bow.update(player)
-    # if arrow:
-    #   arrow_group.add(arrow)
-    # for arrow in arrow_group:
-    #     arrow.draw(screen)
-    # for arrow in arrow_group:
-    #     damage,damage_pos,enemy=arrow.update(enemy_list)
-    #     if damage:
-    #         damage_text=dagameText(damage_pos.centerx,damage_pos.y,str(damage),cons.RED,font)
-    #         dagame_Text_group.add(damage_text)
-    #         #check if hit a enemy or not(there is a enemy or not then check if it is alive)
-    #     if enemy and enemy.alive==False:
-    #         enemy_list.remove(enemy)
+
     
         #enemy draw
          for enemy in enemy_list:
           if not enemy.remove_me:
               enemy.draw(screen)
 
-         enemy_left = len(enemy_list)
-         enemy_left_text = UI.Text(cons.SCREEN_WIDTH-300, 15, f'Enemies: {enemy_left}', font, cons.PURPLE)
+         state.enemy_left = len(enemy_list)
+         enemy_left_text = UI.Text(cons.SCREEN_WIDTH-300, 15, f'Enemies: {state.enemy_left}', font, cons.PURPLE)
          enemy_left_text.draw_text(screen)
     
-    #item
+    #item   
          for item in item_group:
              item.draw(screen)
          for item in item_group:
-             item.update(screen_scroll,player,alliance)
+             item.update(screen_scroll,player)
              if item.pending_dialog:
-                dialog_message=item.pending_dialog
-                is_dialog_active=True
+                state.dialog_message=item.pending_dialog
+                state.is_dialog_active=True
     
 
     #Text
 
     #Level_text.draw_text(screen)
-         if current_level=='1':
+         if state.current_level=='1':
           score_text=UI.Text(50,15,f'{player.score}/{cons.L1_GOAL}',font,cons.PURPLE)
           score_text.draw_text(screen)
           score_text.update(screen_scroll)
-         elif current_level=='2':
+         elif state.current_level=='2':
           score_text=UI.Text(50,15,f'{player.score}/{cons.L2_GOAL}',font,cons.PURPLE)
           score_text.draw_text(screen)
           score_text.update(screen_scroll)
@@ -1227,18 +788,19 @@ while game_run:
     #show death screen
          if player.alive==False:
              if death_fade.fade(screen):
-              died_during_boss = current_level == '3' and is_boss_spawned
+              died_during_boss = state.current_level == '3' and state.is_boss_spawned
               if restart_button.draw(screen):
                   death_fade.fade_counter=0
                   reset_level(world,player,enemy_list,fire_ball_group,charge_group,dagame_Text_group,item_group,world_data,object_data,platform_data,tile_list,obj_tile_list)
                   if died_during_boss:
                     reset_to_boss_checkpoint(world, player, enemy_list)
+
                   
             
             
-         if start_intro==True:
+         if state.start_intro==True:
              if intro_fade.fade(screen)==True:
-                  start_intro=False
+                  state.start_intro=False
                   intro_fade.fade_counter=0
     
 
@@ -1246,7 +808,7 @@ while game_run:
     #event handler
     for event in pygame.event.get():
         if event.type==pygame.QUIT:
-            game_run=False
+            state.game_run=False
         #take keyboard presses
         
         if event.type ==pygame.KEYDOWN:
@@ -1257,33 +819,33 @@ while game_run:
             if event.key==pygame.K_SPACE:
                         is_jumping=True
             if event.key==pygame.K_ESCAPE:
-                 if is_shopmenu:
-                     not_purchased=True
+                 if state.is_shopmenu:
+                     state.not_purchased=True
                  else:
-                    pause_game=True
+                    state.pause_game=True
             if event.key==pygame.K_RETURN:
-                if is_dialog_active:
-                 wants_close_dialog=True
+                if state.is_dialog_active:
+                 state.wants_close_dialog=True
 
              #choose pal   
             # if event.key==pygame.K_0:
-            if is_shopmenu:
+            if state.is_shopmenu:
                 if event.key==pygame.K_1:
                     alliance=Rin
                     if player.score>=cons.Fujiwara_Rin:
-                     is_purchased=True
+                     state.is_purchased=True
                 if event.key==pygame.K_2:
                     alliance=Vesper
                     if player.score>=cons.Vesper:
-                     is_purchased=True
+                     state.is_purchased=True
                 if event.key==pygame.K_3:
                     alliance=Fuma
                     if player.score>=cons.Himura:
-                     is_purchased=True
+                     state.is_purchased=True
                 if event.key==pygame.K_4:
                     alliance=Ares
                     if player.score>=cons.Ares:
-                     is_purchased=True
+                     state.is_purchased=True
 
 
 

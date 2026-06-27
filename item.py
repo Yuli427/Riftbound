@@ -38,7 +38,7 @@ class Item(pygame.sprite.Sprite):
         #pygame.draw.rect(surface,cons.RED,self.rect,1)  
     
 
-    def update(self,screen_scroll,player,alliance):
+    def update(self,screen_scroll,player):
             
             Helper.animate(self)
             if not self.is_icon:
@@ -58,9 +58,8 @@ class Item(pygame.sprite.Sprite):
                           #player.health=100
                 #potion
                 elif self.item_type=='2':
-                     alliance.alive=True
-                     alliance.health=100
-                     self.pending_dialog=f'You brought {alliance.name} back to life.'
+                     player.alive=True
+                     player.health+=10
                 self.kill()
 
 

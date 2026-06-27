@@ -169,11 +169,6 @@ class Alliance(pygame.sprite.Sprite):
     def attack_logic(self,enemylist,world):
         if not self.target:
             return
-
-        # dist = math.sqrt(
-        #     (self.rect.centerx - self.target.rect.centerx) ** 2 +(self.rect.centery - self.target.rect.centery) ** 2)
-        # dx_to_target = self.target.rect.centerx - self.rect.centerx
-        # dy_to_target = self.target.rect.centery - self.rect.centery
         
         dx_to_target = self.target.rect.centerx - self.rect.centerx
         dy_to_target = self.target.rect.centery - self.rect.centery
@@ -286,23 +281,6 @@ class Alliance(pygame.sprite.Sprite):
             self.frames=self.animations[new_state]
             self.frame_index=0
     
-    # def update_animation(self):
-
-    #     if self.state == 'Dead':
-    #         self.frames = self.animations['Dead']
-    #     elif self.state=='Stunned':
-    #         self.frames=self.animations['Stunned']
-    #     elif self.state == 'Attack':
-    #         self.frames = self.animations['Attack']
-    #     elif self.state == 'Follow':
-    #         self.frames = self.animations['Walk']
-    #     elif self.state == 'Run':
-    #         self.frames = self.animations['Run']
-    #     elif self.state=='Jump':
-    #         self.frames = self.animations['Jump']
-    #     else:
-    #         self.frames = self.animations['Idle']
-           
 
 
 
