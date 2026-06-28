@@ -1,4 +1,5 @@
 import pygame
+from pygame import mixer
 import random
 from State import GameState
 from assets import load_static_assets,L1_WAVES,L2_WAVES,L3_WAVES,L3_BOSS
@@ -16,11 +17,19 @@ from Alliance import Alliance as All
 
 
 pygame.init()
+mixer.init()
 
 game_name='Riftbound'
 #open a window
 screen=pygame.display.set_mode((cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
 pygame.display.set_caption(game_name)
+
+#music
+pickup = pygame.mixer.Sound("assets/audio/jump.wav")
+pickup.set_volume(0.2)
+
+health_recharge=pygame.mixer.Sound("assets/audio/potion.wav")
+health_recharge.set_volume(0.3)
 
 clock= pygame.time.Clock()
 state = GameState()
@@ -131,6 +140,7 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     state.is_purchased=False
     state.is_shopmenu = False
     state.not_purchased = False
+    state.had_enough_socre=False
 
     state.is_dialog_active=False
     state.wants_close_dialog = False
@@ -198,6 +208,9 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     player.stunned = False
     player.player_state = 'Idle'
     player.score = 0
+
+    #reset music
+    state.level1_music_start=False
     
     
 
@@ -270,8 +283,10 @@ while state.choosing:
     #create player
     if state.selected_gender=='Female':
         player=Player(200,700,100,animation.School_girl_animations)
+        
     else:
         player=Player(200,700,100,animation.School_boy1_animations,)
+        
     screen.fill(cons.BACK_GROUND)
     UI.draw_choose_menu(screen, font, state.player_name, state.selected_gender, game_name,True)
     name_text=UI.Text(300,15,state.player_name,font,cons.PURPLE)
@@ -529,6 +544,13 @@ while state.game_run:
 
             
              if state.is_level1:
+                
+                if not state.level1_music_start:
+                    pygame.mixer.music.load('assets/audio/Moonlit.wav')
+                    pygame.mixer.music.set_volume(0)
+                    pygame.mixer.music.play(-1,0.0,5000)
+                    state.level1_music_start=True
+
                 #start it if wave is not active, it is active but player clean all the enemies
                 if not state.wave_active or (state.wave_active and len(enemy_list)==0):
                     if state.wave_active:
@@ -641,19 +663,23 @@ while state.game_run:
                                                   
                                                
                                                 
- 
-            
+             if state.current_level=='1' and player.score>=cons.L1_GOAL:
+                 state.had_enough_socre=True
+             if state.current_level=='2' and player.score>=cons.L2_GOAL:
+                 state.had_enough_socre=True
+
              state.item_spawn_cooldown-=delta_time
              if state.current_level=='1' or state.current_level=='2':
-                if state.item_spawn_cooldown<=0:
+                if state.item_spawn_cooldown<=0 and not state.had_enough_socre:
                     sx,sy=random.choice(spawn_tile)
                     x=sx+world.scroll_x
                     y=sy+world.scroll_y
                     money=Item(x,y+40,'1',money_img,animation.Money_animation,False)
+                    money.pickup_money=pickup
                     if len(item_group)<=4:
                         item_group.add(money)
 
-                    state.item_spawn_cooldown=random.randint(5000,7000)
+                    state.item_spawn_cooldown=random.randint(9000,10000)
 
              
              if player.health>=40:
@@ -665,6 +691,7 @@ while state.game_run:
                         x=sx+world.scroll_x
                         y=sy+world.scroll_y
                         potion=Item(x,y+40,'2',potion_img,None,False)
+                        potion.health_recharge=health_recharge
                         item_group.add(potion)
                         state.potion_spawned=True
             
@@ -736,12 +763,13 @@ while state.game_run:
                 t.draw(screen)
             
 
-
+         player.update()
          if not player.alive:
           player.move(0, 0, world)
-         player.update()
+         
          player.draw(screen)
          player.update_player_state(dx,dy,is_attacking,is_dashing,is_jumping)
+         is_attacking = False
 
 
 
@@ -870,9 +898,9 @@ while state.game_run:
                 is_jumping=False
             
 
-        if event.type ==pygame.MOUSEBUTTONUP:
-            if event.button==1:
-                is_attacking=False
+        # if event.type ==pygame.MOUSEBUTTONUP:
+        #     if event.button==1:
+        #         is_attacking=False
                 
 
 

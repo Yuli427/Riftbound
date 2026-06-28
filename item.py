@@ -12,6 +12,8 @@ class Item(pygame.sprite.Sprite):
         self.animation_speed=0.15
         self.update_time=pygame.time.get_ticks()
         self.pending_dialog=''
+        self.health_recharge=None
+        self.pickup_money=None
 
 
         if animation==None:
@@ -53,6 +55,8 @@ class Item(pygame.sprite.Sprite):
                 #money    
                 elif self.item_type=='1':
                      player.score+=100
+                     if self.pickup_money:
+                         self.pickup_money.play()
                      #player.health+=10
                      #if player.health>100:
                           #player.health=100
@@ -60,6 +64,8 @@ class Item(pygame.sprite.Sprite):
                 elif self.item_type=='2':
                      player.alive=True
                      player.health+=10
+                     if self.health_recharge:
+                         self.health_recharge.play()
                 self.kill()
 
 

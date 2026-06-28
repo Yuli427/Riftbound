@@ -8,6 +8,9 @@ from Character_types import PLAYER
 class Player(Character):
     def __init__(self, x, y, health, animation, char_type=PLAYER):
         super().__init__(x, y, health, animation, char_type)
+        self.attack_anim_until = 0
+        self.attack_anim_duration = 700
+        
 
 
     def handle_player_camera(self, dx, dy, world, screen_scroll):
@@ -87,8 +90,19 @@ class Player(Character):
             self.vel_y = -20
             self.on_ground = False
 
+        now = pygame.time.get_ticks()
+
+        if now < self.attack_anim_until:
+            self.player_state='Attack'
+            self.frames=self.animations['Attack']
+            return
+            
         if is_attacking:
-            new_state = 'Attack'
+            self.player_state='Attack'
+            self.attack_anim_until=now+self.attack_anim_duration
+            self.frames=self.animations['Attack']
+            self.frame_index=0
+            return
         elif self.hit:
             new_state = 'Hurt'
         elif is_dashing:
@@ -97,7 +111,6 @@ class Player(Character):
             new_state = 'Jump'
         elif dx != 0 and self.on_ground:
             new_state = 'Walk'
-
             if dx < 0:
                 self.facing_right = False
             else:

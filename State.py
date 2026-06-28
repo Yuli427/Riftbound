@@ -6,6 +6,10 @@ class GameState:
     game_over: bool = False
     game_run: bool = True
 
+    #music
+    level1_music_start:bool=False
+  
+
     # Intro / transition
     start_intro: bool = False
     opening_intro: bool = False
@@ -19,14 +23,14 @@ class GameState:
     dialog_message: str = ""
 
     # Level
-    current_level: str = "3"
+    current_level: str = "1"
     level_complete_shop: bool = False
     pending_level_load: bool = False
 
     # Level flags
-    is_level1: bool = False
+    is_level1: bool = True
     is_level2: bool = False
-    is_level3: bool = True
+    is_level3: bool = False
 
     # Goal dialogs
     show_goal_dialog_l1: bool = False
@@ -63,6 +67,9 @@ class GameState:
     fire_spawn_timer: int = 0
     turnado_spawn_timer: int = 0
     finish_anime: int = cons.DEATH_PLAY
+
+    #goal
+    had_enough_socre=False
 
 
     def set_level(self, level: str) -> None:
