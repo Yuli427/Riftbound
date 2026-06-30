@@ -135,7 +135,7 @@ def build_tornado_spawn_tiles(world):
         right_ok = right1 and right2 and right3
         left_ok = left1 and left2 and left3
 
-        if right_ok or left_ok:
+        if right_ok and left_ok:
             tornado_spawn_tile.append((tile.centerx, tile.top))
 
     return tornado_spawn_tile

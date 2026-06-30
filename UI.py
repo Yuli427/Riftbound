@@ -167,7 +167,7 @@ def draw_victory(screen,font):
        line_text=Text(start_x,start_y+(i*line_height),line_content,font,color)
        line_text.draw_text(screen)
       
-def draw_dialog(screen, font, alliance,sentence):
+def draw_dialog(screen, font,sentence):
       
       
       overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT//3))

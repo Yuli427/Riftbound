@@ -3,6 +3,7 @@ import math
 import animation
 import Constants as cons
 import Helper
+import Audio
 from Character import Character
 from Weapon import Fire_ball, Charge, Arrow
 from Character_types import (
@@ -39,6 +40,8 @@ class Enemy(Character):
 
         if self.is_dead():
             self.enemy_state = 'Dead'
+            if self.char_type==FLYING_DEMON:
+                Audio.cry.play()
 
         else:
             self.enemy_state = 'Idle'
@@ -191,7 +194,7 @@ class Enemy(Character):
                 self.rect.centery = player.rect.centery
 
                 if self.attack_cooldown <= 0:
-                    player.health -= 30
+                    player.health -= 0
                     player.hit = True
                     player.last_hit = pygame.time.get_ticks()
                     self.attack_cooldown = 60
@@ -215,6 +218,7 @@ class Enemy(Character):
                         animation.lightning_animation,
                         'Freez'
                     )
+                
 
                     self.last_lightning_attack = pygame.time.get_ticks()
 
@@ -303,7 +307,7 @@ class Enemy(Character):
 
     def apply_enemy_movement(self, ai_dx, ai_dy, world):
         if self.enemy_state in ['Walk', 'Idle', 'Dead', 'Attack', 'Run', 'Stunned']:
-            self.move(ai_dx, ai_dy, world)
+            self.move(ai_dx, ai_dy, world,None)
 
 
     def update_enemy_animation(self, ai_dx):
@@ -322,6 +326,10 @@ class Enemy(Character):
 
         elif self.enemy_state == 'Attack':
             self.frames = self.animations['Attack']
+            if ai_dx > 0:
+                self.facing_right = True
+            elif ai_dx<0:
+                self.facing_right = False
 
         elif self.enemy_state == 'Ranged_Attack':
             if self.char_type == 'Boss':
@@ -345,6 +353,8 @@ class Enemy(Character):
 
         elif self.enemy_state == 'Run':
             self.frames = self.animations['Run']
+            if self.char_type==RUNNER_DEMON:
+                Audio.ghost.play()
 
             if ai_dx > 0:
                 self.facing_right = True
@@ -363,7 +373,7 @@ class Enemy(Character):
         push_dx=-cons.KNOCKBACK_PX    
         
     #move the enemy pos my push_dx
-      self.move(push_dx,0,world)
+      self.move(push_dx,0,world,None)
         
       self.stunned=True
       self.stun_until=cons.STUN_TIME

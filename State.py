@@ -8,6 +8,9 @@ class GameState:
 
     #music
     level1_music_start:bool=False
+    level2_music_start:bool=False
+
+
   
 
     # Intro / transition
@@ -50,6 +53,7 @@ class GameState:
     # Player / alliance related state
     has_alliance: bool = False
     potion_spawned: bool = False
+    potion_spawned_first_time=False
     was_freezed: bool = False
 
     # Character selection
@@ -61,7 +65,7 @@ class GameState:
     opening_intro_timer: int = cons.INTRO_TIMER
     game_over_timer: int = cons.GAME_OVER_TIMER
     victory_timer: int = cons.VICTORY_TIMER
-    show_dialog_timer: int = 3000
+    show_dialog_timer: int = 2000
 
     item_spawn_cooldown: int = 0
     fire_spawn_timer: int = 0
@@ -70,6 +74,7 @@ class GameState:
 
     #goal
     had_enough_socre=False
+    goal_reached=False
 
 
     def set_level(self, level: str) -> None:

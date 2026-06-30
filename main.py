@@ -6,6 +6,7 @@ from assets import load_static_assets,L1_WAVES,L2_WAVES,L3_WAVES,L3_BOSS
 import Constants as cons
 import animation
 import UI
+import Audio
 from Player import Player
 from level_loader import load_level_world
 from Enemy import Enemy
@@ -16,6 +17,7 @@ from Button import Button
 from Alliance import Alliance as All
 
 
+
 pygame.init()
 mixer.init()
 
@@ -24,12 +26,8 @@ game_name='Riftbound'
 screen=pygame.display.set_mode((cons.SCREEN_WIDTH,cons.SCREEN_HEIGHT))
 pygame.display.set_caption(game_name)
 
-#music
-pickup = pygame.mixer.Sound("assets/audio/jump.wav")
-pickup.set_volume(0.2)
 
-health_recharge=pygame.mixer.Sound("assets/audio/potion.wav")
-health_recharge.set_volume(0.3)
+
 
 clock= pygame.time.Clock()
 state = GameState()
@@ -142,6 +140,10 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     state.not_purchased = False
     state.had_enough_socre=False
 
+    state.level1_music_start=False
+    state.level2_music_star=False
+
+
     state.is_dialog_active=False
     state.wants_close_dialog = False
     state.dialog_message = ""
@@ -157,6 +159,8 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
 
     state.reset_boss_state()
     state.reset_wave_state()
+
+    
 
 
     #reset alliance
@@ -261,9 +265,6 @@ def reset_to_boss_checkpoint(world, player, enemy_list):
 
 
   
-    
-    
-    
 
 while state.choosing:
     for event in pygame.event.get():
@@ -282,10 +283,12 @@ while state.choosing:
     
     #create player
     if state.selected_gender=='Female':
-        player=Player(200,700,100,animation.School_girl_animations)
+        player=Player(100,1700,100,animation.School_girl_animations)
+        
         
     else:
-        player=Player(200,700,100,animation.School_boy1_animations,)
+        player=Player(100,1700,100,animation.School_boy1_animations,)
+        
         
     screen.fill(cons.BACK_GROUND)
     UI.draw_choose_menu(screen, font, state.player_name, state.selected_gender, game_name,True)
@@ -389,15 +392,15 @@ while state.game_run:
 
     elif state.is_dialog_active:
        if state.is_boss_spawned==True and state.current_level=='3':
-           UI.draw_dialog(screen, font, alliance, f'The final BOSS has arrived! You must fight alone, {alliance.name} will not able to help you now.. ')
+           UI.draw_dialog(screen, font, f'The final BOSS has arrived! You must fight alone, {alliance.name} will not able to help you now.. ')
        elif state.show_goal_dialog_l1 and state.current_level=='1':
-           UI.draw_dialog(screen, font, alliance, f'Goal: Eliminate all enemies and obtain {cons.L1_GOAL}. Remember you need to find them if you can\'t see them...')
+           UI.draw_dialog(screen, font,  f'Goal: Eliminate all enemies and obtain {cons.L1_GOAL}. Remember you need to find them if you can\'t see them...')
        elif state.show_goal_dialog_l2 and state.current_level=='2':
-           UI.draw_dialog(screen, font, alliance, f'Goal: Eliminate all enemies and obtain {cons.L2_GOAL}.')
+           UI.draw_dialog(screen, font,  f'Goal: Eliminate all enemies and obtain {cons.L2_GOAL}.')
        elif state.show_goal_dialog_l3 and state.current_level=='3':
-           UI.draw_dialog(screen, font, alliance, 'Goal: Eliminate all enemies.')
+           UI.draw_dialog(screen, font, 'Goal: Eliminate all enemies.')
        else:
-           UI.draw_dialog(screen,font,alliance,state.dialog_message)
+           UI.draw_dialog(screen,font,state.dialog_message)
        if state.wants_close_dialog:
           state.is_dialog_active=False
           state.wants_close_dialog=False
@@ -419,7 +422,7 @@ while state.game_run:
     elif state.game_over==True:
         if state.game_over_timer>0:
             state.game_over_timer-=delta_time
-            UI.draw_text_screen(screen,font,'You won! good job.')
+            UI.draw_text_screen(screen,font,f'You won! good job.')
         else:
             screen.fill((0,0,0))
             if restart_button.draw(screen):
@@ -474,9 +477,11 @@ while state.game_run:
         
          screen.blit(bg_img,(0,0))
          screen.blit(bg_img_building,(0,0))
-
+         
          #world 
          world.draw(screen)
+         UI.draw_square(screen)
+
 
     
          if player.alive:
@@ -507,7 +512,7 @@ while state.game_run:
    
        
         #apply screen scroll
-             screen_scroll=player.move(dx,dy,world)
+             screen_scroll=player.move(dx,dy,world,enemy_list)
 
         #clamp camera to world bounds
              new_x=world.scroll_x+screen_scroll[0]
@@ -537,20 +542,14 @@ while state.game_run:
              world.scroll_y+=screen_scroll[1]
          
 
-       
-
-        
-             
 
             
              if state.is_level1:
                 
                 if not state.level1_music_start:
-                    pygame.mixer.music.load('assets/audio/Moonlit.wav')
-                    pygame.mixer.music.set_volume(0)
-                    pygame.mixer.music.play(-1,0.0,5000)
-                    state.level1_music_start=True
-
+                 Audio.play_music(Audio.LEVEL1_BGM,0.5,1000)
+                 state.level1_music_start=True
+              
                 #start it if wave is not active, it is active but player clean all the enemies
                 if not state.wave_active or (state.wave_active and len(enemy_list)==0):
                     if state.wave_active:
@@ -574,7 +573,18 @@ while state.game_run:
                         if not state.level_complete_shop and player.score>=cons.L1_GOAL:
                             state.level_complete_shop=True
                             state.is_shopmenu=True
+                            print("L1 COMPLETE - stopping music")
+                            state.level1_music_start=False
+                            Audio.stop_music(1000)
+
+
+
+                        
              if state.is_level2:
+                    
+                    Audio.play_music(Audio.LEVEL2_BGM,0.5,1000)
+                    
+
                     #start it if wave is not active, it is active but player clean all the enemies
                     if not state.wave_active or (state.wave_active and len(enemy_list)==0):
                         if state.wave_active:
@@ -596,8 +606,16 @@ while state.game_run:
                             if not state.level_complete_shop and player.score>=cons.L2_GOAL:
                                 state.level_complete_shop=True
                                 state.is_shopmenu=True
+
+                                Audio.stop_music(1000)
+
+
              
              if state.is_level3:
+                    if state.is_boss_spawned:
+                        Audio.play_music(Audio.BOSS_BGM, 0.4, 1000)
+                    else:
+                        Audio.play_music(Audio.LEVEL3_BGM, 0.5, 1000)
                     if not state.wave_active or (state.wave_active and len(enemy_list)==0):
                         if state.wave_active:
                             state.current_wave+=1
@@ -620,6 +638,9 @@ while state.game_run:
                                 state.is_boss_spawned=True
                                 state.is_dialog_active=True
                                 state.wave_active=True
+                                
+                                Audio.play_music(Audio.BOSS_BGM, 0.4, 1000)
+
                                 for(anim,ctype,count) in L3_BOSS[0]:
                                     boss = create_enemy_from_spawn(
                                         anim,
@@ -635,9 +656,9 @@ while state.game_run:
                                 
                                
                         
-                    if state.is_boss_spawned and len(enemy_list)>0:
-                                        
-                                        boss = enemy_list[0]  
+                    if state.is_boss_spawned :
+                                        if len(enemy_list)>0:
+                                         boss = enemy_list[0]  
                                     #if boss.health <= 50 and not phase2_triggered:
                                         
                                         state.phase2_triggered = True
@@ -648,25 +669,36 @@ while state.game_run:
                                                     tornado_spawn_x=random.randint(200,800)
                                                     tornado = Tornado(tornado_spawn_x, 350, animation.wind_ball_animation)
                                                     Tornado_group.add(tornado)
-                                                    state.turnado_spawn_timer=10000
+                                                    state.turnado_spawn_timer=20000
                                             if state.fire_spawn_timer<=0:
                                                     sx1, sy1 = random.choice(Tornado_spawn_tile)
                                                     x1 = sx1 + world.scroll_x
                                                     y1 = sy1 + world.scroll_y
                                                     fire = FireHazard(x1, y1, animation.Fire_animation)
                                                     Fire_hazard_group.add(fire)
-                                                    state.fire_spawn_timer=800
+                                                    state.fire_spawn_timer=15000
                                         if boss.alive==False:
                                                 state.finish_anime-=delta_time
                                                 if state.finish_anime<=0:                   
                                                  state.game_over=True
+                                                 Audio.stop_music(1000)
+                                                 Tornado_group.empty()
+                                                 Fire_hazard_group.empty()
+                                                 Audio.burnout.stop()
+                                                 Audio.tornado.stop()
                                                   
                                                
                                                 
-             if state.current_level=='1' and player.score>=cons.L1_GOAL:
-                 state.had_enough_socre=True
-             if state.current_level=='2' and player.score>=cons.L2_GOAL:
-                 state.had_enough_socre=True
+
+             if state.current_level == '1' and player.score >= cons.L1_GOAL:
+              state.goal_reached = True
+             if state.current_level == '2' and player.score >= cons.L2_GOAL:
+              state.goal_reached = True
+             if state.goal_reached:
+               state.had_enough_socre = True
+               for item in item_group.copy():
+                    if item.item_type=='1':
+                        item.kill()
 
              state.item_spawn_cooldown-=delta_time
              if state.current_level=='1' or state.current_level=='2':
@@ -675,7 +707,6 @@ while state.game_run:
                     x=sx+world.scroll_x
                     y=sy+world.scroll_y
                     money=Item(x,y+40,'1',money_img,animation.Money_animation,False)
-                    money.pickup_money=pickup
                     if len(item_group)<=4:
                         item_group.add(money)
 
@@ -687,16 +718,21 @@ while state.game_run:
 
              else :
                  if not state.potion_spawned:
+                        
                         sx,sy=random.choice(spawn_tile)
                         x=sx+world.scroll_x
                         y=sy+world.scroll_y
                         potion=Item(x,y+40,'2',potion_img,None,False)
-                        potion.health_recharge=health_recharge
                         item_group.add(potion)
                         state.potion_spawned=True
+                        if not state.potion_spawned_first_time:
+                                state.dialog_message = "Go look for potion to heal yourself!"
+                                state.is_dialog_active = True
+                                state.potion_spawned_first_time = True
+
             
                     
-             if is_attacking==True and not player.is_freezed:
+             if is_attacking==True and not player.is_freezed and player.attack_cooldown<=0:
                 damage,damage_pos,enemy=player.attack(enemy_list)
                 if damage:
                       damage_text=dagameText(damage_pos.centerx,damage_pos.y,str(damage),cons.RED,font)
@@ -765,7 +801,7 @@ while state.game_run:
 
          player.update()
          if not player.alive:
-          player.move(0, 0, world)
+          player.move(0, 0, world,None)
          
          player.draw(screen)
          player.update_player_state(dx,dy,is_attacking,is_dashing,is_jumping)
@@ -776,7 +812,7 @@ while state.game_run:
     
     #draw player health
          UI.draw_health_bar(screen,player,screen_scroll)
-         UI.draw_square(screen)
+
 
     
         #enemy draw
@@ -815,6 +851,7 @@ while state.game_run:
     
     #show death screen
          if player.alive==False:
+             Audio.stop_music()
              if death_fade.fade(screen):
               died_during_boss = state.current_level == '3' and state.is_boss_spawned
               if restart_button.draw(screen):
@@ -878,10 +915,21 @@ while state.game_run:
 
 
             
-        
+    
         if event.type ==pygame.MOUSEBUTTONDOWN:
-            if event.button==1:
-                 is_attacking=True
+                if event.button==1:
+                      if (
+                state.start_game
+                and not state.start_intro
+                and not state.pause_game
+                and not state.is_shopmenu
+                and not state.is_dialog_active
+                and not state.opening_intro
+                and not state.game_over
+                and player.alive
+            ):
+                         is_attacking=True
+
 
                 
         

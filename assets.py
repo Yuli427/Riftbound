@@ -37,6 +37,10 @@ def load_static_assets():
         assets["money_icon_img"],
         (64, 64)
     )
+    assets["potion_img"] = pygame.transform.scale(
+        assets["potion_img"],
+        (64, 64)
+    )
 
     # Weapons
     assets["bow_image"] = pygame.image.load("assets/weapon/bow.png").convert_alpha()
@@ -105,7 +109,7 @@ L3_WAVES = [
      ],
      [
          #(animation.Demon4_animations, RUNNER_DEMON, 2),
-         (animation.Demon5_animations, FLYING_DEMON, 2),
+         #(animation.Demon5_animations, FLYING_DEMON, 2),
      ],
 ]
 

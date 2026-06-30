@@ -4,7 +4,7 @@ import animation
 import Helper 
 import Constants as cons
 from Weapon import Fire_ball, Charge ,Arrow
-from Character_types import NO_GRAVITY_TYPES,BOSS,PLAYER
+from Character_types import NO_GRAVITY_TYPES,BOSS,PLAYER,FLYING_TYPES
 
 
 
@@ -22,9 +22,9 @@ class Character():
     
     def setup_rect(self, x, y, char_type):
         if char_type == '3':  # charge demon
-            self.rect = pygame.Rect(0, 0, 48, 90)
+            self.rect = pygame.Rect(0, 0, 45, 90)
         else:
-            self.rect = pygame.Rect(0, 0, 48, 70)
+            self.rect = pygame.Rect(0, 0, 45, 70)
 
         self.rect.center = (x, y)
 
@@ -141,15 +141,32 @@ class Character():
     
        
 
-    def move(self,dx,dy,world):
+    def move(self,dx,dy,world,blockers):
         if self.char_type not in NO_GRAVITY_TYPES or not self.alive :
          self.vel_y+=1
          dy=self.vel_y
 
         screen_scroll=[0,0]
-
+ 
+        old_rect=self.rect.copy()
         self.rect.x+=dx
         self.rect.y+=dy
+
+
+       
+        if not blockers== None and self.alive:
+            for blocker in blockers:
+                if blocker is self:
+                    continue
+                if not blocker.alive:
+                    continue
+                if blocker.char_type not in FLYING_TYPES:
+                    if self.rect.colliderect(blocker.rect):
+                        if old_rect.right <= blocker.rect.left and dx > 0:
+                            self.rect.right = blocker.rect.left
+                        elif old_rect.left >= blocker.rect.right and dx < 0:
+                            self.rect.left = blocker.rect.right
+
 
         self.on_ground=False
         for tile in world.obstacle_tiles:

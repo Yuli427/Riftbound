@@ -1,6 +1,7 @@
 import pygame
 import random
 import Constants as cons
+import Audio
 from Character import Character
 from Character_types import PLAYER
 
@@ -10,6 +11,12 @@ class Player(Character):
         super().__init__(x, y, health, animation, char_type)
         self.attack_anim_until = 0
         self.attack_anim_duration = 700
+        self.attack_combo_count = 0
+        self.combo_max = 3
+        self.combo_cooldown = 100
+        self.last_attack_time = 0
+        self.combo_reset_time = 800
+        
         
 
 
@@ -97,11 +104,16 @@ class Player(Character):
             self.frames=self.animations['Attack']
             return
             
-        if is_attacking:
+        if is_attacking and self.attack_cooldown<=0:
             self.player_state='Attack'
             self.attack_anim_until=now+self.attack_anim_duration
             self.frames=self.animations['Attack']
             self.frame_index=0
+            Audio.punch_sound.play()
+            if dx < 0:
+                self.facing_right = False
+            elif dx > 0:
+                self.facing_right = True
             return
         elif self.hit:
             new_state = 'Hurt'
@@ -113,7 +125,7 @@ class Player(Character):
             new_state = 'Walk'
             if dx < 0:
                 self.facing_right = False
-            else:
+            elif dx >0:
                 self.facing_right = True
 
         elif dx == 0 and dy == 0 and self.alive:
@@ -134,14 +146,41 @@ class Player(Character):
         damage_pos = None
         hit_enemy = None
 
-        # in cooldown can not attack
-        if self.attack_cooldown > 0:
-            return 0, None, None
+        now=pygame.time.get_ticks()
+        # if attack is not continous set count to zero
+        if now- self.last_attack_time>self.combo_reset_time:
+            self.attack_combo_count=0
 
-        self.attack_cooldown = 20
+        self.last_attack_time=now
+        self.attack_combo_count+=1
+
+        # if count reaches max, attack cooldown will decrease in charater update
+        # player can attack agian after cooldown
+        if self.attack_combo_count>=self.combo_max: 
+            self.attack_cooldown=self.combo_cooldown
+            self.attack_combo_count=0
+
+        #create attack rect
+        attack_width = 70
+        attack_height = self.rect.height
+        if self.facing_right:
+            attack_rect = pygame.Rect(
+                self.rect.right,
+                self.rect.y,
+                attack_width,
+                attack_height
+            )
+        else:
+            attack_rect = pygame.Rect(
+                self.rect.left-attack_width,
+                self.rect.y,
+                attack_width,
+                attack_height
+            )
+
 
         for enemy in enemylist:
-            if enemy.rect.colliderect(self.rect) and enemy.alive:
+            if enemy.rect.colliderect(attack_rect) and enemy.alive:
                 damage = random.randint(25, 35)
                 enemy.health -= damage
                 hit_enemy = enemy

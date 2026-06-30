@@ -295,7 +295,7 @@ class Alliance(pygame.sprite.Sprite):
              surface.blit(flipped_image,image_rect)
         else:
              surface.blit(self.image,image_rect)
-        pygame.draw.rect(surface,cons.RED,self.rect,1)  
+        #pygame.draw.rect(surface,cons.RED,self.rect,1)  
         
 
   

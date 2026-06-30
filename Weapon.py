@@ -2,8 +2,9 @@ import pygame
 import math
 import random
 import Helper
+import Audio
 import Constants as cons
-
+from Character_types import CHARGE_DEMON ,FLYING_DEMON
 
 class Weapon():
     def __init__(self,image,arrow_image,animation,has_animation):
@@ -106,6 +107,7 @@ class Arrow(pygame.sprite.Sprite):
                 # damage= 10 + random.randint(-5,5)
                 player.is_freezed=True
                 player.last_freeze=pygame.time.get_ticks()
+                Audio.laser.play()
                 self.kill()
                   # stop checking more enemies – one arrow should only hit one target
         
@@ -151,6 +153,7 @@ class Fire_ball(pygame.sprite.Sprite):
             player.hit= True
             player.last_hit=pygame.time.get_ticks()
             player.health-=10
+            Audio.fireball.play()
             self.kill()
 
 
@@ -188,8 +191,7 @@ class Charge(pygame.sprite.Sprite):
         
         self.rect=self.image.get_rect()
         self.rect.center=(x,y)
-        
-
+    
         self.duration=1000
         self.start_time=pygame.time.get_ticks()
 
@@ -235,6 +237,10 @@ class Charge(pygame.sprite.Sprite):
             player.health -= random.randint(15, 20)
             player.hit = True
             player.last_hit = pygame.time.get_ticks()
+            if self.owner.char_type== CHARGE_DEMON:
+                Audio.squirt.play()
+            # if self.owner.char_type==FLYING_DEMON:
+            #     Audio.dark.play()
            
             
             
@@ -299,8 +305,10 @@ class Tornado(pygame.sprite.Sprite):
     def update(self, screen_scroll, player, world):
         if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
             self.kill()
+            Audio.tornado.stop()
             return
-
+        
+        Audio.tornado.play()
         # 跟随 scroll
         self.rect.x += screen_scroll[0]
         self.rect.y += screen_scroll[1]
@@ -365,7 +373,10 @@ class FireHazard(pygame.sprite.Sprite):
     def update(self, screen_scroll, player):
         if pygame.time.get_ticks() - self.spawn_time >= self.lifetime:
             self.kill()
+            Audio.burnout.stop()
             return
+        
+        Audio.burnout.play()
 
         # 跟随 scroll
         self.rect.x += screen_scroll[0]
