@@ -109,7 +109,7 @@ def build_spawn_tiles(world):
         left1 = (cx - cons.TILE_SIZE, top) in tile_set
         right1 = (cx + cons.TILE_SIZE, top) in tile_set
 
-        if left1 or right1:
+        if left1 and right1:
             spawn_tile.append((tile.centerx, tile.top - cons.ENEMY_HEIGHT))
 
     return spawn_tile

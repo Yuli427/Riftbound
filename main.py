@@ -15,6 +15,7 @@ from Effects import dagameText
 from item import Item
 from Button import Button
 from Alliance import Alliance as All
+from Character_types import CHARGE_DEMON,FLYING_DEMON,NORMAL_DEMON,RANGED_DEMON,RUNNER_DEMON
 
 
 
@@ -47,6 +48,7 @@ fire_ball_image = assets["fire_ball_image"]
 charge_image = assets["charge_image"]
 font = assets["font"]
 smaller_font = assets["smaller_font"]
+bigger_font=assets['Bigger_font']
 
 
 
@@ -147,6 +149,9 @@ def reset_level(world, player, enemy_list, fireballs, charge, dagame_Text_group,
     state.is_dialog_active=False
     state.wants_close_dialog = False
     state.dialog_message = ""
+
+    state.had_enough_socre=False
+    state.goal_reached=False
 
     enemy_list.clear()
     fireballs.empty()
@@ -283,15 +288,16 @@ while state.choosing:
     
     #create player
     if state.selected_gender=='Female':
-        player=Player(100,1700,100,animation.School_girl_animations)
+        player=Player(170,250,100,animation.School_girl_animations)
+        
         
         
     else:
-        player=Player(100,1700,100,animation.School_boy1_animations,)
+        player=Player(170,250,100,animation.School_boy1_animations,)
         
         
     screen.fill(cons.BACK_GROUND)
-    UI.draw_choose_menu(screen, font, state.player_name, state.selected_gender, game_name,True)
+    UI.draw_choose_menu(screen, bigger_font, state.player_name, state.selected_gender, game_name,True)
     name_text=UI.Text(300,15,state.player_name,font,cons.PURPLE)
     pygame.display.update()
     
@@ -306,15 +312,15 @@ def create_enemy_from_spawn(anim, ctype, world, spawn_tile, health=100):
 
 
 def get_l1_enemy_health(ctype):
-    if ctype == '1':
+    if ctype == NORMAL_DEMON:
         return 100
-    elif ctype == '2':
+    elif ctype == RANGED_DEMON:
         return 90
-    elif ctype == '3':
-        return 130
-    elif ctype == '4':
+    elif ctype == CHARGE_DEMON:
+        return 90
+    elif ctype == RUNNER_DEMON:
         return 150
-    elif ctype == '5':
+    elif ctype == FLYING_DEMON:
         return 120
 
     return 100
@@ -353,7 +359,7 @@ while state.game_run:
             state.victory_timer-=delta_time
         if state.victory_timer<=0:
                 screen.fill((0,0,0))
-                UI.draw_shop_menu(screen, smaller_font, player.score,state.current_level)
+                UI.draw_shop_menu(screen, font, player.score,state.current_level)
                 if state.is_purchased==True and alliance.name== 'Rin' :
                      player.score-=cons.Fujiwara_Rin
                      alliance_group.empty()
@@ -391,16 +397,16 @@ while state.game_run:
                         
 
     elif state.is_dialog_active:
-       if state.is_boss_spawned==True and state.current_level=='3':
+       if state.dialog_message!='':
+           UI.draw_dialog(screen,font,state.dialog_message)
+       elif state.is_boss_spawned==True and state.current_level=='3':
            UI.draw_dialog(screen, font, f'The final BOSS has arrived! You must fight alone, {alliance.name} will not able to help you now.. ')
        elif state.show_goal_dialog_l1 and state.current_level=='1':
            UI.draw_dialog(screen, font,  f'Goal: Eliminate all enemies and obtain {cons.L1_GOAL}. Remember you need to find them if you can\'t see them...')
        elif state.show_goal_dialog_l2 and state.current_level=='2':
            UI.draw_dialog(screen, font,  f'Goal: Eliminate all enemies and obtain {cons.L2_GOAL}.')
        elif state.show_goal_dialog_l3 and state.current_level=='3':
-           UI.draw_dialog(screen, font, 'Goal: Eliminate all enemies.')
-       else:
-           UI.draw_dialog(screen,font,state.dialog_message)
+           UI.draw_dialog(screen, font, 'Goal: Eliminate all enemies.')  
        if state.wants_close_dialog:
           state.is_dialog_active=False
           state.wants_close_dialog=False
@@ -441,6 +447,7 @@ while state.game_run:
                 state.show_dialog_timer = 3000
                 state.level_complete_shop = False
                 enemy_list.clear()
+                state.has_alliance=False
                 if not alliance_group.empty():
                  alliance_group.empty()
                 reset_level(world, player, enemy_list, fire_ball_group, charge_group,
@@ -509,7 +516,7 @@ while state.game_run:
              if moving_left==True:
                  dx = -cons.SPEED
 
-   
+             
        
         #apply screen scroll
              screen_scroll=player.move(dx,dy,world,enemy_list)
@@ -571,9 +578,9 @@ while state.game_run:
                         #if this is the last wave,deactivate the wave
                         state.wave_active=False
                         if not state.level_complete_shop and player.score>=cons.L1_GOAL:
+                            Audio.victory.play()
                             state.level_complete_shop=True
                             state.is_shopmenu=True
-                            print("L1 COMPLETE - stopping music")
                             state.level1_music_start=False
                             Audio.stop_music(1000)
 
@@ -602,11 +609,13 @@ while state.game_run:
                             )
                                             
                         else:
+                            
                             state.wave_active=False
+                            
                             if not state.level_complete_shop and player.score>=cons.L2_GOAL:
+                                Audio.victory.play()
                                 state.level_complete_shop=True
                                 state.is_shopmenu=True
-
                                 Audio.stop_music(1000)
 
 
@@ -664,10 +673,10 @@ while state.game_run:
                                         state.phase2_triggered = True
                                         state.fire_spawn_timer-=delta_time
                                         state.turnado_spawn_timer-=delta_time
-                                        if  boss.health <= boss.max_health_boss * 0.5:
+                                        if  boss.health <= boss.max_health_boss*0.4 :
                                             if state.turnado_spawn_timer<=0:
-                                                    tornado_spawn_x=random.randint(200,800)
-                                                    tornado = Tornado(tornado_spawn_x, 350, animation.wind_ball_animation)
+                                                    tornado_spawn_x=200
+                                                    tornado = Tornado(tornado_spawn_x, 500, animation.wind_ball_animation)
                                                     Tornado_group.add(tornado)
                                                     state.turnado_spawn_timer=20000
                                             if state.fire_spawn_timer<=0:
@@ -676,16 +685,21 @@ while state.game_run:
                                                     y1 = sy1 + world.scroll_y
                                                     fire = FireHazard(x1, y1, animation.Fire_animation)
                                                     Fire_hazard_group.add(fire)
-                                                    state.fire_spawn_timer=15000
+                                                    state.fire_spawn_timer=10000
                                         if boss.alive==False:
-                                                state.finish_anime-=delta_time
-                                                if state.finish_anime<=0:                   
-                                                 state.game_over=True
+                                                 state.finish_anime-=delta_time
                                                  Audio.stop_music(1000)
                                                  Tornado_group.empty()
                                                  Fire_hazard_group.empty()
+
                                                  Audio.burnout.stop()
-                                                 Audio.tornado.stop()
+                                                 Audio.tornado.stop() 
+
+                                                 
+
+                                                 if state.finish_anime<=0:                   
+                                                  state.game_over=True
+                                                  Audio.victory.play()
                                                   
                                                
                                                 
@@ -726,8 +740,8 @@ while state.game_run:
                         item_group.add(potion)
                         state.potion_spawned=True
                         if not state.potion_spawned_first_time:
-                                state.dialog_message = "Go look for potion to heal yourself!"
-                                state.is_dialog_active = True
+                                state.is_dialog_active=True
+                                state.dialog_message='Look for potion to heal yourself'
                                 state.potion_spawned_first_time = True
 
             
@@ -828,7 +842,7 @@ while state.game_run:
          for item in item_group:
              item.draw(screen)
          for item in item_group:
-             item.update(screen_scroll,player)
+             item.update(screen_scroll,player,state.is_boss_spawned)
              if item.pending_dialog:
                 state.dialog_message=item.pending_dialog
                 state.is_dialog_active=True
@@ -852,6 +866,7 @@ while state.game_run:
     #show death screen
          if player.alive==False:
              Audio.stop_music()
+             pygame.mixer.stop()
              if death_fade.fade(screen):
               died_during_boss = state.current_level == '3' and state.is_boss_spawned
               if restart_button.draw(screen):

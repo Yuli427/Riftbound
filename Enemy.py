@@ -194,10 +194,10 @@ class Enemy(Character):
                 self.rect.centery = player.rect.centery
 
                 if self.attack_cooldown <= 0:
-                    player.health -= 0
+                    player.health -=15
                     player.hit = True
                     player.last_hit = pygame.time.get_ticks()
-                    self.attack_cooldown = 60
+                    self.attack_cooldown = 100
 
             else:
                 self.enemy_state = 'Ranged_Attack'

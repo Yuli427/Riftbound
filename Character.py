@@ -3,7 +3,6 @@ import math
 import animation
 import Helper 
 import Constants as cons
-from Weapon import Fire_ball, Charge ,Arrow
 from Character_types import NO_GRAVITY_TYPES,BOSS,PLAYER,FLYING_TYPES
 
 
@@ -22,7 +21,7 @@ class Character():
     
     def setup_rect(self, x, y, char_type):
         if char_type == '3':  # charge demon
-            self.rect = pygame.Rect(0, 0, 45, 90)
+            self.rect = pygame.Rect(0, 0, 45, 70)
         else:
             self.rect = pygame.Rect(0, 0, 45, 70)
 
@@ -76,7 +75,7 @@ class Character():
 
         self.last_fireball_attack = 0
         self.last_lightning_attack = 0
-        self.fireball_cooldown = 700
+        self.fireball_cooldown = 1000
         self.lightning_cooldown = 2000
 
         self.charge_cooldown = 2000

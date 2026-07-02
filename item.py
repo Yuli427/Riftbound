@@ -4,6 +4,7 @@ import UI
 import Audio
 import Constants as cons
 
+
 class Item(pygame.sprite.Sprite):
     def __init__(self,x,y,item_type,image,animation,is_icon=False):
         pygame.sprite.Sprite.__init__(self)
@@ -40,7 +41,7 @@ class Item(pygame.sprite.Sprite):
         #pygame.draw.rect(surface,cons.RED,self.rect,1)  
     
 
-    def update(self,screen_scroll,player):
+    def update(self,screen_scroll,player,is_boss_spawned):
             
             Helper.animate(self)
             if not self.is_icon:
@@ -62,7 +63,10 @@ class Item(pygame.sprite.Sprite):
                 #potion
                 elif self.item_type=='2':
                      player.alive=True
-                     player.health+=30
+                     if not is_boss_spawned:
+                      player.health+=30
+                     else:
+                      player.health+=50
                      Audio.health_recharge.play()
                 self.kill()
 

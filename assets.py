@@ -39,7 +39,7 @@ def load_static_assets():
     )
     assets["potion_img"] = pygame.transform.scale(
         assets["potion_img"],
-        (64, 64)
+        (20, 20)
     )
 
     # Weapons
@@ -50,6 +50,7 @@ def load_static_assets():
 
     # Fonts
     assets["font"] = pygame.font.Font("assets/font/AtariClassic.ttf", 20)
+    assets["Bigger_font"] = pygame.font.Font("assets/font/AtariClassic.ttf", 27)
     assets["smaller_font"] = pygame.font.Font("assets/font/AtariClassic.ttf", 15)
     assets["JAPA_font"] = pygame.font.Font("assets/font/NotoSansJP-Bold.ttf", 23)
 
@@ -64,53 +65,53 @@ BOSS = 'Boss'
 
 
 L1_WAVES = [
-    [(animation.Demon1_animations, NORMAL_DEMON, 1)],
+    #  [(animation.Demon1_animations, NORMAL_DEMON, 1)],
 
     
-     [
-         (animation.Demon1_animations, NORMAL_DEMON, 2),
-         (animation.Demon4_animations, RUNNER_DEMON, 1),
-     ],
-     [
-         (animation.Demon1_animations, NORMAL_DEMON, 2),
-         (animation.Demon4_animations, RUNNER_DEMON, 2),
-     ],
+    #   [
+    #       (animation.Demon1_animations, NORMAL_DEMON, 2),
+    #       (animation.Demon4_animations, RUNNER_DEMON, 1),
+    #   ],
+    #   [
+    #       (animation.Demon1_animations, NORMAL_DEMON, 2),
+    #       (animation.Demon4_animations, RUNNER_DEMON, 2),
+    #   ],
 ]
 
 
 L2_WAVES = [
-    [
-        (animation.Demon1_animations, NORMAL_DEMON, 2),
-        (animation.Demon3_animations, CHARGE_DEMON, 2),
-    ],
+    # [
+    #     (animation.Demon1_animations, NORMAL_DEMON, 2),
+    #     (animation.Demon3_animations, CHARGE_DEMON, 1),
+    # ],
 
     
-     [
-         (animation.Demon1_animations, NORMAL_DEMON, 2),
-         (animation.Demon2_animations, RANGED_DEMON, 1),
-     ],
-     [
-         (animation.Demon1_animations, NORMAL_DEMON, 2),
-         (animation.Demon2_animations, RANGED_DEMON, 1),
-         (animation.Demon3_animations, CHARGE_DEMON, 1),
-     ],
+    #  [
+    #      (animation.Demon1_animations, NORMAL_DEMON, 2),
+    #      (animation.Demon2_animations, RANGED_DEMON, 1),
+    #  ],
+    #  [
+    #      (animation.Demon1_animations, NORMAL_DEMON, 2),
+    #      (animation.Demon2_animations, RANGED_DEMON, 1),
+    #      (animation.Demon3_animations, CHARGE_DEMON, 1),
+    #  ],
 ]
 
 
 L3_WAVES = [
-    [
-        #(animation.Demon1_animations, NORMAL_DEMON, 2),
-        #(animation.Demon5_animations, FLYING_DEMON, 2),
-    ],
+    # [
+    #     (animation.Demon1_animations, NORMAL_DEMON, 2),
+    #     (animation.Demon5_animations, FLYING_DEMON, 1),
+    # ],
 
     
-     [
-         #(animation.Demon5_animations, FLYING_DEMON, 1),
-     ],
-     [
-         #(animation.Demon4_animations, RUNNER_DEMON, 2),
-         #(animation.Demon5_animations, FLYING_DEMON, 2),
-     ],
+    #  [
+    #      (animation.Demon5_animations, FLYING_DEMON, 2),
+    #  ],
+    #  [
+    #      (animation.Demon4_animations, RUNNER_DEMON, 2),
+    #      (animation.Demon5_animations, FLYING_DEMON, 1),
+    #  ],
 ]
 
 

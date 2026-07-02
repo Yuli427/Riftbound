@@ -36,7 +36,7 @@ class GameState:
     is_level3: bool = False
 
     # Goal dialogs
-    show_goal_dialog_l1: bool = False
+    show_goal_dialog_l1: bool = True
     show_goal_dialog_l2: bool = False
     show_goal_dialog_l3: bool = False
 

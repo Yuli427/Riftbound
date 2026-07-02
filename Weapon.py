@@ -234,7 +234,7 @@ class Charge(pygame.sprite.Sprite):
          damage_box = self.rect.inflate(20, 40)   # 普通 charge 怪
 
         if player.rect.colliderect(damage_box) and player.hit == False and player.alive:
-            player.health -= random.randint(15, 20)
+            player.health -= random.randint(5, 15)
             player.hit = True
             player.last_hit = pygame.time.get_ticks()
             if self.owner.char_type== CHARGE_DEMON:
@@ -334,6 +334,7 @@ class Tornado(pygame.sprite.Sprite):
         if self.rect.colliderect(player.rect):
             if self.attack_cooldown <= 0:
                 player.hit = True
+                player.health-=10
                 player.last_hit = pygame.time.get_ticks()
                 self.attack_cooldown = 60
 
@@ -344,7 +345,7 @@ class Tornado(pygame.sprite.Sprite):
         if not self.facing_right:
             draw_image = pygame.transform.flip(self.image, True, False)
         surface.blit(draw_image, self.rect)
-        pygame.draw.rect(surface, cons.RED, self.rect, 1)
+        #pygame.draw.rect(surface, cons.RED, self.rect, 1)
 
 
 class FireHazard(pygame.sprite.Sprite):
@@ -388,6 +389,7 @@ class FireHazard(pygame.sprite.Sprite):
         if self.rect.colliderect(player.rect):
             if self.attack_cooldown <= 0:
                 player.hit = True
+                player.health-=random.randint(4,10)
                 player.last_hit = pygame.time.get_ticks()
                 self.attack_cooldown = 60
 
@@ -395,5 +397,5 @@ class FireHazard(pygame.sprite.Sprite):
 
     def draw(self, surface):
         surface.blit(self.image, self.rect)
-        pygame.draw.rect(surface, cons.RED, self.rect, 1)
+        #pygame.draw.rect(surface, cons.RED, self.rect, 1)
 

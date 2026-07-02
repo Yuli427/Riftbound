@@ -62,3 +62,6 @@ burnout.set_volume(0.3)
 
 tornado=pygame.mixer.Sound("assets/audio/tornado.mp3")
 tornado.set_volume(0.3)
+
+victory=pygame.mixer.Sound("assets/audio/victory.mp3")
+victory.set_volume(0.5)

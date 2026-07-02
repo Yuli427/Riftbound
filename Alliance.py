@@ -56,12 +56,12 @@ class Alliance(pygame.sprite.Sprite):
      elif name == 'Vesper':
             self.speed = 2
             self.fast_speed = 4
-            self.attack_range = 150
+            self.attack_range = 50
             self.damage = 8
-            self.detect_range = 1000
+            self.detect_range = 2000
 
      elif name == 'Fuma':
-            self.speed = 6
+            self.speed = 3
             self.fast_speed = 6
             self.attack_range = 50
             self.damage = 12
@@ -72,7 +72,7 @@ class Alliance(pygame.sprite.Sprite):
             self.fast_speed = 4
             self.attack_range = 60
             self.damage = 14
-            self.detect_range = 1000
+            self.detect_range = 1500
 
 
 #dx 指的是在 水平方向（X 轴）上的位移增量。dy 指的是在 垂直方向（Y 轴）上的位移增量。
@@ -212,6 +212,11 @@ class Alliance(pygame.sprite.Sprite):
             self.is_attacking=True
             self.dy=0
             self.dx=0
+            if self.target.rect.centerx > self.rect.centerx:
+             self.facing_right = True
+            else:
+             self.facing_right = False
+
             if self.attack_cooldown<=0:
                 self.target.health-=self.damage
                 self.target.stunned=True

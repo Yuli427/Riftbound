@@ -94,12 +94,13 @@ def draw_square(screen):
     pygame.draw.rect(hud_surface,(255,255,255,150),(0,0,cons.SCREEN_WIDTH,hud_height))
     screen.blit(hud_surface,(0,0))
 
-def draw_shop_menu(screen, font, player_money,current_level):
-      overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT))
-      overlay.fill((0,0,0))
-      overlay.set_alpha(150)
-      screen.blit(overlay, (0,0))
-      if current_level=='1':
+def draw_shop_menu(screen, font, player_money, current_level):
+    overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT))
+    overlay.fill((0, 0, 0))
+    overlay.set_alpha(150)
+    screen.blit(overlay, (0, 0))
+
+    if current_level == '1':
         lines = [
             "Guess what? You can buy friends in this game,",
             "even though you might not be able to in real life...",
@@ -109,11 +110,11 @@ def draw_shop_menu(screen, font, player_money,current_level):
             f"Press [2] to buy Vesper Blanche  {cons.Vesper}",
             f"Press [3] to buy Himura Fuma     {cons.Himura}",
             f"Press [4] to buy Ares            {cons.Ares}",
-            f"Press [ESC] to leave"
+            "Press [ESC] to leave"
         ]
-      else:
-           lines = [
-            "if you wish to replace with your alliance with a new one",
+    else:
+        lines = [
+            "If you wish to replace your alliance with a new one,",
             "it is time to do so...",
             f"Your Money: ${player_money}",
             "",
@@ -121,16 +122,31 @@ def draw_shop_menu(screen, font, player_money,current_level):
             f"Press [2] to buy Vesper Blanche  {cons.Vesper}",
             f"Press [3] to buy Himura Fuma     {cons.Himura}",
             f"Press [4] to buy Ares            {cons.Ares}",
-            f"Press [ESC] to leave"]
+            "Press [ESC] to leave"
+        ]
 
-      start_x = 30
-      start_y = 120
-      line_height = 35
-      
-      for i,line_content in enumerate(lines):
-       color=(255, 215, 0) if 'Your Money'in line_content else cons.PURPLE
-       line_text=Text(start_x,start_y+(i*line_height),line_content,font,color)
-       line_text.draw_text(screen)
+    line_height = font.get_height() + 10
+
+    # Calculate text block size
+    text_widths = [font.size(line)[0] for line in lines]
+    menu_width = max(text_widths)
+
+    total_height = len(lines) * line_height
+
+    start_x = cons.SCREEN_WIDTH // 2 - menu_width // 2
+    start_y = cons.SCREEN_HEIGHT // 2 - total_height // 2
+
+    for i, line_content in enumerate(lines):
+        color = (255, 215, 0) if 'Your Money' in line_content else cons.PURPLE
+
+        line_text = Text(
+            start_x,
+            start_y + i * line_height,
+            line_content,
+            font,
+            color
+        )
+        line_text.draw_text(screen)
 
 def draw_text_screen(screen,font,message):
       overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT))
@@ -202,37 +218,58 @@ def draw_dialog(screen, font,sentence):
        line_text.draw_text(screen)
     
 
-def draw_choose_menu(screen, font, player_name, selected_gender, game_name,input_active):
+def draw_choose_menu(screen, font, player_name, selected_gender, game_name, input_active):
     overlay = pygame.Surface((cons.SCREEN_WIDTH, cons.SCREEN_HEIGHT))
     overlay.fill((0, 0, 0))
     overlay.set_alpha(150)
     screen.blit(overlay, (0, 0))
 
+    center_x = cons.SCREEN_WIDTH // 2
+
+    menu_width = 420
+    menu_x = center_x - menu_width // 2
+
+    title_y = 80
+    name_label_y = 190
+    input_box_y = 235
+    gender_label_y = 320
+    gender_btn_y = 365
+    confirm_y = 470
+
+    
+
     # title
-    title = Text(cons.SCREEN_WIDTH//2 - 100, 60, game_name, font, (255, 215, 0))
+    title = Text(center_x - 100, title_y, game_name, font, (255, 215, 0))
     title.draw_text(screen)
 
-    # entername text
-    name_label = Text(30, 180, 'Enter your name:', font, cons.PURPLE)
+    # enter name text
+    name_label = Text(menu_x, name_label_y, 'Enter your name:', font, cons.PURPLE)
     name_label.draw_text(screen)
 
-    # entername_box
-    input_box = pygame.Rect(30, 220, 300, 40)
+    # enter name box
+    input_box = pygame.Rect(menu_x, input_box_y, menu_width, 45)
     pygame.draw.rect(screen, cons.WHITE, input_box, 2)
-    name_text = Text(40, 228, player_name, font, cons.WHITE)
+
+    name_text = Text(menu_x + 12, input_box_y + 8, player_name, font, cons.WHITE)
     name_text.draw_text(screen)
 
     # gender text
-    gender_label = Text(30, 300, 'press <- and -> to choose', font, cons.PURPLE)
+    gender_label = Text(menu_x-100, gender_label_y, 'Press <- and -> to choose', font, cons.PURPLE)
     gender_label.draw_text(screen)
 
-    # 性别按钮
-    for i, gender in enumerate(['Male', 'Female']):
-        color = (255, 215, 0) if selected_gender == gender else cons.WHITE
-        btn = Text(30 + i * 150, 340, f'[{gender}]', font, color)
-        btn.draw_text(screen)
+    # gender buttons
+    male_x = menu_x
+    female_x = menu_x + 180
 
-    # 确认提示
-    confirm = Text(30, 440, 'Press ENTER to start', font, cons.PURPLE)
+    male_color = (255, 215, 0) if selected_gender == 'Male' else cons.WHITE
+    female_color = (255, 215, 0) if selected_gender == 'Female' else cons.WHITE
+
+    male_btn = Text(male_x, gender_btn_y, '[Male]', font, male_color)
+    female_btn = Text(female_x, gender_btn_y, '[Female]', font, female_color)
+
+    male_btn.draw_text(screen)
+    female_btn.draw_text(screen)
+
+    # confirm
+    confirm = Text(menu_x-50, confirm_y, 'Press ENTER to start', font, cons.PURPLE)
     confirm.draw_text(screen)
-      
