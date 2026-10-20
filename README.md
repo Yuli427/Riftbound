@@ -44,11 +44,11 @@ While working on this project, I learned more about:
 ```bash
 git clone <https://github.com/Yuli427/Riftbound.git>
 
-2.Go into the project folder:
+2 .Go into the project folder:
 cd Riftbound
 
-3.Install pygame：
+3. Install pygame：
 pip install pygame
 
-4.Run the game
+4. Run the game
 py main.py
